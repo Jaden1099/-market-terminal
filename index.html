@@ -31,12 +31,20 @@ body{background:var(--bg);font-family:var(--font);color:var(--text);margin:0;min
 .dash-grid{display:grid;grid-template-columns:240px 1fr;flex:1;}
 @media(max-width:650px){.dash-grid{grid-template-columns:1fr;}}
 .sidebar{background:var(--bg1);border-right:1px solid var(--border);overflow-y:auto;}
-.sidebar-hdr{padding:7px 12px;font-size:10px;letter-spacing:2px;color:var(--accent);background:var(--bg2);border-bottom:1px solid var(--border);border-top:1px solid var(--border);}
-.ticker-row{padding:8px 12px;border-bottom:1px solid #111;cursor:pointer;display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px;transition:background 0.1s;}
+.sidebar-hdr{padding:7px 12px;font-size:10px;letter-spacing:2px;color:var(--accent);background:var(--bg2);border-bottom:1px solid var(--border);border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.ticker-row{padding:8px 12px;border-bottom:1px solid #111;cursor:pointer;display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:4px;transition:background 0.1s;}
 .ticker-row:hover{background:var(--bg3);}
 .ticker-row.active{background:var(--bg3);border-left:2px solid var(--accent);}
 .t-sym{font-size:13px;font-weight:bold;}.t-name{font-size:10px;color:var(--muted);margin-top:1px;}
 .t-price{font-size:12px;font-weight:bold;text-align:right;}.t-chg{font-size:10px;text-align:right;margin-top:1px;}
+.remove-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 2px;line-height:1;opacity:0;}
+.ticker-row:hover .remove-btn{opacity:1;}
+.remove-btn:hover{color:var(--red);}
+.add-ticker-box{padding:8px 10px;border-bottom:1px solid var(--border);display:flex;gap:6px;}
+.add-ticker-input{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:11px;padding:5px 8px;outline:none;border-radius:3px;width:0;}
+.add-ticker-input:focus{border-color:var(--accent);}
+.add-ticker-btn{background:var(--accent);color:#000;border:none;font-family:var(--font);font-size:10px;font-weight:bold;padding:5px 8px;cursor:pointer;border-radius:3px;white-space:nowrap;}
+.add-ticker-btn:hover{opacity:0.85;}
 .main-dash{display:flex;flex-direction:column;overflow-y:auto;}
 .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);}
 @media(max-width:650px){.stat-row{grid-template-columns:repeat(2,1fr);}}
@@ -185,9 +193,15 @@ body{background:var(--bg);font-family:var(--font);color:var(--text);margin:0;min
   <div class="page active" id="page-dashboard">
     <div class="dash-grid">
       <div class="sidebar">
-        <div class="sidebar-hdr">▸ STOCKS</div><div id="stockList"></div>
-        <div class="sidebar-hdr">▸ CRYPTO</div><div id="cryptoList"></div>
-        <div class="sidebar-hdr">▸ COMMODITIES</div><div id="commList"></div>
+        <div class="sidebar-hdr">
+          <span>▸ MY WATCHLIST</span>
+          <span style="font-size:9px;color:var(--muted);letter-spacing:0">hover ticker to remove</span>
+        </div>
+        <div class="add-ticker-box">
+          <input class="add-ticker-input" id="addTickerInput" placeholder="Add any ticker: AAPL, BTC-USD..." onkeydown="if(event.key==='Enter')addTicker()"/>
+          <button class="add-ticker-btn" onclick="addTicker()">+ ADD</button>
+        </div>
+        <div id="watchlistContainer"></div>
       </div>
       <div class="main-dash">
         <div class="stat-row">
@@ -389,10 +403,86 @@ function fmtC(c,p){
 function volFmt(v){if(!v||v===0)return'--';if(v>1e9)return(v/1e9).toFixed(1)+'B';if(v>1e6)return(v/1e6).toFixed(1)+'M';if(v>1e3)return(v/1e3).toFixed(0)+'K';return v;}
 
 // ── DATA ─────────────────────────────────────────────────────
-const STOCKS=[{sym:'AAPL',name:'Apple'},{sym:'NVDA',name:'Nvidia'},{sym:'MSFT',name:'Microsoft'},{sym:'TSLA',name:'Tesla'},{sym:'AMZN',name:'Amazon'},{sym:'META',name:'Meta'},{sym:'GOOGL',name:'Alphabet'},{sym:'JPM',name:'JPMorgan'}];
-const CRYPTOS=[{sym:'BTC',name:'Bitcoin',id:'BTC-USD'},{sym:'ETH',name:'Ethereum',id:'ETH-USD'},{sym:'SOL',name:'Solana',id:'SOL-USD'},{sym:'XRP',name:'XRP',id:'XRP-USD'}];
-const COMMS=[{sym:'GCUSD',name:'Gold',label:'GC'},{sym:'CLUSD',name:'WTI Oil',label:'CL'},{sym:'SIUSD',name:'Silver',label:'SI'}];
 let priceCache={},selectedSym=null,selectedName=null,chartRange='1D',dashChartObj=null;
+
+// ── CUSTOM WATCHLIST ──────────────────────────────────────────
+const DEFAULT_WATCHLIST=[
+  {sym:'AAPL',name:'Apple'},{sym:'NVDA',name:'Nvidia'},{sym:'MSFT',name:'Microsoft'},
+  {sym:'TSLA',name:'Tesla'},{sym:'AMZN',name:'Amazon'},{sym:'META',name:'Meta'},
+  {sym:'GOOGL',name:'Alphabet'},{sym:'JPM',name:'JPMorgan'},
+  {sym:'BTC-USD',name:'Bitcoin'},{sym:'ETH-USD',name:'Ethereum'},
+  {sym:'SOL-USD',name:'Solana'},{sym:'XRP-USD',name:'XRP'},
+  {sym:'GCUSD',name:'Gold'},{sym:'CLUSD',name:'WTI Oil'},
+];
+
+function loadWatchlist(){
+  const saved=localStorage.getItem('watchlist');
+  return saved?JSON.parse(saved):DEFAULT_WATCHLIST;
+}
+function saveWatchlist(list){localStorage.setItem('watchlist',JSON.stringify(list));}
+
+function getDisplaySym(sym){return sym.replace('-USD','').replace('USD','');}
+
+function addTicker(){
+  const input=document.getElementById('addTickerInput');
+  let sym=input.value.trim().toUpperCase();
+  if(!sym)return;
+  // normalize common inputs
+  if(sym==='BTC')sym='BTC-USD';
+  if(sym==='ETH')sym='ETH-USD';
+  if(sym==='SOL')sym='SOL-USD';
+  if(sym==='XRP')sym='XRP-USD';
+  if(sym==='GOLD')sym='GCUSD';
+  if(sym==='OIL')sym='CLUSD';
+  if(sym==='SILVER')sym='SIUSD';
+  const list=loadWatchlist();
+  if(list.find(x=>x.sym===sym)){input.value='';return;}
+  list.push({sym,name:sym});
+  saveWatchlist(list);
+  input.value='';
+  // fetch price for new ticker then re-render
+  fetchFmpQuote(sym).then(q=>{
+    if(q)priceCache[sym]=q;
+    renderWatchlist();
+  });
+}
+
+function removeTicker(sym,e){
+  e.stopPropagation();
+  const list=loadWatchlist().filter(x=>x.sym!==sym);
+  saveWatchlist(list);
+  if(selectedSym===sym){selectedSym=null;selectedName=null;}
+  renderWatchlist();
+}
+
+function renderWatchlist(){
+  const list=loadWatchlist();
+  const container=document.getElementById('watchlistContainer');
+  container.innerHTML='';
+  if(list.length===0){
+    container.innerHTML='<div style="padding:16px;font-size:11px;color:var(--muted);text-align:center;">Your watchlist is empty.<br>Add a ticker above!</div>';
+    return;
+  }
+  list.forEach(item=>{
+    const q=priceCache[item.sym];
+    const chg=q&&q.chg!=null?fmtC(q.chg,q.pct):{t:'--',cls:'neu'};
+    const priceStr=q?fmt(q.price):'--';
+    const displaySym=getDisplaySym(item.sym);
+    const d=document.createElement('div');
+    d.className='ticker-row'+(selectedSym===item.sym?' active':'');
+    d.innerHTML=`
+      <div onclick="selectTick('${item.sym}','${item.name||item.sym}','${displaySym}')">
+        <div class="t-sym">${displaySym}</div>
+        <div class="t-name">${item.name||item.sym}</div>
+      </div>
+      <div onclick="selectTick('${item.sym}','${item.name||item.sym}','${displaySym}')" style="cursor:pointer">
+        <div class="t-price ${q?chg.cls:''}">${priceStr}</div>
+        <div class="t-chg ${q?chg.cls:'neu'}">${q?chg.t:'loading...'}</div>
+      </div>
+      <button class="remove-btn" onclick="removeTicker('${item.sym}',event)" title="Remove">✕</button>`;
+    container.appendChild(d);
+  });
+}
 
 // ── FMP PRICE FETCH ──────────────────────────────────────────
 async function fetchFmpQuote(sym){
@@ -453,40 +543,22 @@ async function fetchFmpHistory(sym,range){
   }catch{return null;}
 }
 
-// ── RENDER LISTS ─────────────────────────────────────────────
-function renderLists(){
-  const mkRow=(sym,name,displaySym,onclick)=>{
-    const q=priceCache[sym];
-    const chg=q&&q.chg!=null?fmtC(q.chg,q.pct):{t:'loading...',cls:'neu'};
-    const priceStr=q?fmt(q.price):'--';
-    const d=document.createElement('div');
-    d.className='ticker-row'+(selectedSym===sym?' active':'');
-    d.onclick=onclick;
-    d.innerHTML=`<div><div class="t-sym">${displaySym}</div><div class="t-name">${name}</div></div><div><div class="t-price ${q?chg.cls:''}">${priceStr}</div><div class="t-chg ${q?chg.cls:'neu'}">${q?chg.t:'--'}</div></div>`;
-    return d;
-  };
-  document.getElementById('stockList').innerHTML='';
-  document.getElementById('cryptoList').innerHTML='';
-  document.getElementById('commList').innerHTML='';
-  STOCKS.forEach(s=>document.getElementById('stockList').appendChild(mkRow(s.sym,s.name,s.sym,()=>selectTick(s.sym,s.name,s.sym))));
-  CRYPTOS.forEach(s=>document.getElementById('cryptoList').appendChild(mkRow(s.id,s.name,s.sym,()=>selectTick(s.id,s.name,s.sym))));
-  COMMS.forEach(s=>document.getElementById('commList').appendChild(mkRow(s.sym,s.name,s.label,()=>selectTick(s.sym,s.name,s.label))));
-}
+// ── RENDER & LOAD ─────────────────────────────────────────────
+function renderLists(){renderWatchlist();}
 
 function updateTopBar(){
-  const set=(id,sym,label)=>{
+  const set=(id,sym)=>{
     const q=priceCache[sym];if(!q)return;
-    document.getElementById('b-'+id).textContent=fmt(q.price);
+    const el=document.getElementById('b-'+id);if(!el)return;
+    el.textContent=fmt(q.price);
     if(q.chg!=null){
       const c=fmtC(q.chg,q.pct);
-      const el=document.getElementById('b-'+id+'-c');
-      el.textContent=' '+c.t;el.className=c.cls;
+      const cel=document.getElementById('b-'+id+'-c');if(!cel)return;
+      cel.textContent=' '+c.t;cel.className=c.cls;
     }
   };
   set('spy','SPY');set('qqq','QQQ');set('aapl','AAPL');set('nvda','NVDA');
   set('btc','BTC-USD');set('eth','ETH-USD');set('gold','GCUSD');set('oil','CLUSD');
-
-  // Market mood from SPY change
   const spy=priceCache['SPY'];
   if(spy&&spy.pct!=null){
     const p=spy.pct;
@@ -497,43 +569,27 @@ function updateTopBar(){
     else{mood='BEARISH';col='var(--red)';txt='Market down strongly today';}
     document.getElementById('d-mood').textContent=mood;
     document.getElementById('d-mood').style.color=col;
-    document.getElementById('d-mood-txt').textContent='SPY '+( p>=0?'+':'')+p.toFixed(2)+'% — '+txt;
+    document.getElementById('d-mood-txt').textContent='SPY '+(p>=0?'+':'')+p.toFixed(2)+'% — '+txt;
   }
 }
 
 async function loadAllPrices(){
+  const list=loadWatchlist();
   const fmpKey=getFmpKey();
-  if(!fmpKey){
-    // No FMP key — only load crypto via Coinbase
-    document.getElementById('fmpStatus');
-    await Promise.allSettled(CRYPTOS.map(async c=>{
-      const q=await fetchCryptoPrice(c.sym+'-USD');
-      if(q)priceCache[c.id]=q;
-    }));
-    renderLists();updateTopBar();
-    return;
-  }
-  // Load stocks
-  const stockSyms=STOCKS.map(s=>s.sym).concat(['SPY','QQQ']);
-  await Promise.allSettled(stockSyms.map(async sym=>{
-    const q=await fetchFmpQuote(sym);
-    if(q)priceCache[sym]=q;
+  // Load all tickers in watchlist + SPY/QQQ for mood
+  const toLoad=[...new Set([...list.map(x=>x.sym),'SPY','QQQ'])];
+  await Promise.allSettled(toLoad.map(async sym=>{
+    // Use Coinbase for crypto (reliable, no key)
+    if(sym.endsWith('-USD')&&!fmpKey){
+      const q=await fetchCryptoPrice(sym);
+      if(q)priceCache[sym]=q;
+    } else if(fmpKey){
+      const q=await fetchFmpQuote(sym);
+      if(q)priceCache[sym]=q;
+    }
   }));
-  renderLists();updateTopBar();
-
-  // Load crypto — try FMP first, fallback Coinbase
-  await Promise.allSettled(CRYPTOS.map(async c=>{
-    const q=await fetchCryptoFull(c.sym,c.id);
-    if(q)priceCache[c.id]={...q,sym:c.id};
-  }));
-  renderLists();updateTopBar();
-
-  // Load commodities
-  await Promise.allSettled(COMMS.map(async c=>{
-    const q=await fetchFmpQuote(c.sym);
-    if(q)priceCache[c.sym]=q;
-  }));
-  renderLists();updateTopBar();
+  renderWatchlist();
+  updateTopBar();
 }
 
 // ── SELECT TICKER ─────────────────────────────────────────────
