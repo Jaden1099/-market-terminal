@@ -895,10 +895,10 @@ function showPage(id,tabEl){
 }
 
 function updateClock(){
-  const est=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
-  document.getElementById('clock').textContent=est.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})+' EST';
-  const h=est.getHours(),m=est.getMinutes(),day=est.getDay();
-  const open=day>0&&day<6&&(h>9||(h===9&&m>=30))&&h<16;
+  const cst=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Chicago'}));
+  document.getElementById('clock').textContent=cst.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' CST';
+  const h=cst.getHours(),m=cst.getMinutes(),day=cst.getDay();
+  const open=day>0&&day<6&&(h>8||(h===8&&m>=30))&&h<15;
   document.getElementById('mkt-status').textContent=open?'OPEN':'CLOSED';
   document.getElementById('mkt-status').style.color=open?'var(--green)':'var(--red)';
   document.getElementById('mkt-bar-status').innerHTML=`<span style="color:${open?'var(--green)':'var(--red)'}">${open?'▸ NYSE OPEN':'▸ NYSE CLOSED'}</span>`;
@@ -909,7 +909,7 @@ window.onload=()=>{
   const ak=getAnthropicKey();if(ak)document.getElementById('apiKeyInput').value=ak;
   const fk=getFmpKey();if(fk){document.getElementById('fmpKeyInput').value=fk;document.getElementById('fmpStatus').textContent='✓ FMP key loaded';document.getElementById('fmpStatus').style.color='var(--green)';}
   loadTrades();renderGloss();renderStrategies();
-  updateClock();setInterval(updateClock,30000);
+  updateClock();setInterval(updateClock,1000);
   loadNews();
   loadAllPrices();setInterval(loadAllPrices,60000);
   loadBriefing();
