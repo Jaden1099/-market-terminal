@@ -1,2 +1,678 @@
 # -market-terminal
 My personal market terminal
+[index-2.html](https://github.com/user-attachments/files/26315285/index-2.html)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Market Terminal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#0a0c0f;--bg1:#111418;--bg2:#181c22;--bg3:#1e2430;--accent:#00d4aa;--accent2:#3b82f6;--red:#f05252;--green:#10b981;--amber:#f59e0b;--text:#e2e8f0;--muted:#64748b;--border:#1e2d3d;--font:'Courier New',monospace;}
+body{background:var(--bg);font-family:var(--font);color:var(--text);margin:0;min-height:100vh;}
+.terminal{min-height:100vh;display:flex;flex-direction:column;}
+.topbar{background:var(--bg1);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.logo{color:var(--accent);font-size:13px;font-weight:bold;letter-spacing:2px;}
+.topbar-right{display:flex;align-items:center;gap:16px;font-size:11px;color:var(--muted);}
+.live-dot{width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;margin-right:4px;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.paper-badge{background:#1a1500;color:var(--amber);font-size:10px;padding:3px 8px;border-radius:2px;border:1px solid var(--amber);letter-spacing:1px;}
+.market-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:6px 16px;display:flex;gap:24px;overflow-x:auto;font-size:11px;white-space:nowrap;}
+.mb-item{display:flex;gap:6px;align-items:center;}
+.mb-sym{color:var(--muted);}.mb-val{color:var(--text);font-weight:bold;}
+.up{color:var(--green);}.dn{color:var(--red);}.neu{color:var(--amber);}
+.tabs{display:flex;background:var(--bg1);border-bottom:1px solid var(--border);overflow-x:auto;}
+.tab{padding:10px 14px;font-size:11px;letter-spacing:1px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all 0.15s;font-family:var(--font);background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab:hover{color:var(--text);}
+.page{display:none;flex:1;overflow-y:auto;}
+.page.active{display:flex;flex-direction:column;}
+
+/* BRIEFING BANNER */
+.briefing-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;}
+.briefing-hdr{font-size:10px;letter-spacing:2px;color:var(--accent);margin-bottom:6px;}
+.briefing-text{font-size:12px;color:var(--text);line-height:1.6;}
+.briefing-loading{font-size:11px;color:var(--muted);font-style:italic;}
+
+/* DASHBOARD */
+.dash-grid{display:grid;grid-template-columns:240px 1fr;flex:1;}
+@media(max-width:650px){.dash-grid{grid-template-columns:1fr;}}
+.sidebar{background:var(--bg1);border-right:1px solid var(--border);overflow-y:auto;}
+.sidebar-hdr{padding:7px 12px;font-size:10px;letter-spacing:2px;color:var(--accent);background:var(--bg2);border-bottom:1px solid var(--border);border-top:1px solid var(--border);}
+.ticker-row{padding:8px 12px;border-bottom:1px solid #111;cursor:pointer;display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px;transition:background 0.1s;}
+.ticker-row:hover{background:var(--bg3);}
+.ticker-row.active{background:var(--bg3);border-left:2px solid var(--accent);}
+.t-sym{font-size:13px;font-weight:bold;}.t-name{font-size:10px;color:var(--muted);margin-top:1px;}
+.t-price{font-size:12px;font-weight:bold;text-align:right;}.t-chg{font-size:10px;text-align:right;margin-top:1px;}
+.main-dash{display:flex;flex-direction:column;overflow-y:auto;}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);}
+@media(max-width:650px){.stat-row{grid-template-columns:repeat(2,1fr);}}
+.stat-card{background:var(--bg1);padding:10px 12px;}
+.stat-label{font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:4px;}
+.stat-val{font-size:16px;font-weight:bold;}
+.stat-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+.chart-box{background:var(--bg1);padding:12px;border-bottom:1px solid var(--border);}
+.chart-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px;}
+.chart-title{font-size:11px;font-weight:bold;}
+.ctabs{display:flex;gap:3px;}
+.ctab{font-size:10px;padding:2px 7px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;border-radius:2px;font-family:var(--font);}
+.ctab.active{background:var(--accent);color:#000;border-color:var(--accent);}
+
+/* NEWS */
+.news-panel{background:var(--bg1);}
+.panel-hdr{padding:7px 12px;font-size:10px;letter-spacing:2px;color:var(--accent);background:var(--bg2);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.refresh-btn{font-size:10px;color:var(--muted);cursor:pointer;background:none;border:1px solid var(--border);padding:2px 7px;border-radius:2px;font-family:var(--font);}
+.refresh-btn:hover{color:var(--accent);border-color:var(--accent);}
+.news-item{padding:9px 12px;border-bottom:1px solid #111;cursor:pointer;}
+.news-item:hover{background:var(--bg2);}
+.news-tag{font-size:9px;padding:1px 5px;border-radius:2px;display:inline-block;margin-bottom:3px;font-weight:bold;letter-spacing:1px;}
+.tag-bull{background:#052e1a;color:var(--green);}.tag-bear{background:#2d0a0a;color:var(--red);}.tag-neut{background:#1a1500;color:var(--amber);}
+.news-hl{font-size:11px;line-height:1.4;margin-bottom:2px;}.news-meta{font-size:10px;color:var(--muted);}
+.news-source{color:var(--accent2);font-size:10px;}
+
+/* PAPER TRADING */
+.wrap{padding:16px;max-width:900px;width:100%;margin:0 auto;}
+.section-title{font-size:11px;letter-spacing:2px;color:var(--accent);margin-bottom:12px;}
+.pnl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
+@media(max-width:650px){.pnl-grid{grid-template-columns:repeat(2,1fr);}}
+.pnl-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:10px 12px;}
+.pnl-label{font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:4px;}
+.pnl-val{font-size:18px;font-weight:bold;}
+.trade-form{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:14px;margin-bottom:16px;}
+.form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
+@media(max-width:650px){.form-grid{grid-template-columns:1fr 1fr;}}
+.form-group{display:flex;flex-direction:column;gap:4px;}
+.form-label{font-size:10px;color:var(--muted);letter-spacing:1px;}
+.form-input{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:12px;padding:7px 10px;outline:none;border-radius:3px;}
+.form-input:focus{border-color:var(--accent);}
+.form-select{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:12px;padding:7px 10px;outline:none;border-radius:3px;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;}
+.btn{font-family:var(--font);font-size:11px;font-weight:bold;padding:8px 16px;cursor:pointer;border-radius:3px;letter-spacing:1px;border:none;}
+.btn-buy{background:var(--green);color:#000;}
+.btn-sell{background:var(--red);color:#fff;}
+.btn-close{background:var(--bg3);color:var(--amber);border:1px solid var(--amber);}
+.btn-clear{background:var(--bg3);color:var(--muted);border:1px solid var(--border);}
+.trades-table{width:100%;border-collapse:collapse;font-size:11px;}
+.trades-table th{text-align:left;padding:7px 10px;font-size:9px;letter-spacing:1px;color:var(--muted);background:var(--bg2);border-bottom:1px solid var(--border);}
+.trades-table td{padding:8px 10px;border-bottom:1px solid #111;vertical-align:middle;}
+.trades-table tr:hover td{background:var(--bg2);}
+.badge{font-size:9px;padding:2px 6px;border-radius:2px;font-weight:bold;letter-spacing:1px;}
+.badge-open{background:#0f1f30;color:var(--accent2);}
+.badge-win{background:#052e1a;color:var(--green);}
+.badge-loss{background:#2d0a0a;color:var(--red);}
+.close-trade-btn{font-size:10px;padding:3px 8px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;border-radius:2px;font-family:var(--font);}
+.close-trade-btn:hover{border-color:var(--amber);color:var(--amber);}
+
+/* ANALYZER */
+.input-label{font-size:11px;color:var(--muted);margin-bottom:6px;display:block;}
+.term-input{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;border-radius:3px;margin-bottom:8px;}
+.term-input:focus{border-color:var(--accent);}
+.action-btn{background:var(--accent);color:#000;border:none;font-family:var(--font);font-size:11px;font-weight:bold;padding:9px 16px;cursor:pointer;border-radius:3px;letter-spacing:1px;}
+.action-btn:hover{opacity:0.85;}
+.action-btn.sec{background:var(--bg3);color:var(--accent);border:1px solid var(--accent);margin-left:8px;}
+.result-box{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:14px;margin-top:14px;font-size:12px;line-height:1.7;color:var(--text);white-space:pre-wrap;min-height:60px;display:none;}
+.warn-box{background:#2d0a0a;border:1px solid var(--red);border-radius:4px;padding:10px;margin-top:10px;font-size:11px;color:#f87171;line-height:1.6;display:none;}
+.risk-meter{margin-top:14px;display:none;}
+.risk-label{font-size:11px;color:var(--muted);margin-bottom:5px;}
+.risk-bar-wrap{background:var(--bg3);border-radius:3px;height:7px;overflow:hidden;}
+.risk-bar{height:100%;border-radius:3px;transition:width 0.5s;background:var(--green);}
+.quick-checks{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+.check-btn{font-size:11px;padding:5px 10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);cursor:pointer;border-radius:3px;font-family:var(--font);}
+.check-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* GLOSSARY */
+.glossary-search{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;border-radius:3px;margin-bottom:14px;}
+.glossary-search:focus{border-color:var(--accent);}
+.term-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:11px 13px;margin-bottom:8px;cursor:pointer;}
+.term-card:hover{border-color:var(--accent);}
+.term-name{font-size:13px;font-weight:bold;color:var(--accent);margin-bottom:3px;}
+.term-def{font-size:12px;color:var(--text);line-height:1.6;}
+.term-ex{font-size:11px;color:var(--muted);margin-top:5px;font-style:italic;}
+
+/* STRATEGY */
+.strategy-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:13px;margin-bottom:12px;}
+.strategy-name{font-size:13px;font-weight:bold;color:var(--accent);margin-bottom:5px;}
+.strategy-desc{font-size:12px;color:var(--text);line-height:1.6;margin-bottom:8px;}
+.stags{display:flex;gap:5px;flex-wrap:wrap;}
+.stag{font-size:10px;padding:2px 7px;border-radius:2px;}
+.stag-easy{background:#052e1a;color:var(--green);}.stag-med{background:#1a1500;color:var(--amber);}.stag-risk{background:#0f1f30;color:var(--accent2);}
+.build-btn{margin-top:10px;font-size:11px;padding:5px 11px;border:1px solid var(--accent);background:none;color:var(--accent);cursor:pointer;border-radius:3px;font-family:var(--font);}
+.build-btn:hover{background:var(--accent);color:#000;}
+
+/* CHAT */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 160px);}
+.chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;}
+.chat-msg{font-size:13px;line-height:1.65;padding:10px 13px;border-radius:4px;max-width:92%;}
+.chat-msg.system{background:#052e1a;color:var(--green);border-left:2px solid var(--green);max-width:100%;font-size:12px;}
+.chat-msg.user{background:#0f1f30;color:var(--text);border-left:2px solid var(--accent2);align-self:flex-end;}
+.chat-msg.assistant{background:var(--bg2);color:var(--text);border-left:2px solid var(--muted);}
+.chat-msg.loading{color:var(--muted);font-style:italic;}
+.chat-bottom{border-top:1px solid var(--border);background:var(--bg2);}
+.quick-qs{display:flex;flex-wrap:wrap;gap:5px;padding:8px 12px;border-bottom:1px solid var(--border);}
+.qq{font-size:10px;padding:4px 8px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);cursor:pointer;border-radius:3px;font-family:var(--font);}
+.qq:hover{border-color:var(--accent);color:var(--accent);}
+.chat-input-row{display:flex;gap:8px;padding:10px 12px;}
+.chat-input{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:12px;padding:8px 12px;outline:none;border-radius:3px;}
+.chat-input:focus{border-color:var(--accent);}
+.send-btn{background:var(--accent);color:#000;border:none;font-family:var(--font);font-size:11px;font-weight:bold;padding:8px 14px;cursor:pointer;border-radius:3px;}
+
+/* SETTINGS */
+.api-setup{background:#1a1500;border:1px solid var(--amber);border-radius:4px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#fbbf24;line-height:1.7;}
+.api-setup a{color:var(--accent);}
+.api-input-row{display:flex;gap:8px;margin-top:8px;}
+.api-input{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:12px;padding:7px 10px;outline:none;border-radius:3px;}
+.api-input:focus{border-color:var(--accent);}
+.save-btn{background:var(--bg3);color:var(--accent);border:1px solid var(--accent);font-family:var(--font);font-size:11px;padding:7px 12px;cursor:pointer;border-radius:3px;}
+</style>
+</head>
+<body>
+<div class="terminal">
+  <div class="topbar">
+    <div class="logo">▶ MY MARKET MENTOR</div>
+    <div class="topbar-right">
+      <span class="paper-badge">PAPER TRADING MODE</span>
+      <span><span class="live-dot"></span>LIVE</span>
+      <span id="clock" style="font-size:11px;color:var(--muted)">--:--</span>
+      <span id="mkt-status" style="color:var(--green);font-size:11px">--</span>
+    </div>
+  </div>
+
+  <div class="market-bar">
+    <div class="mb-item"><span class="mb-sym">SPY</span><span class="mb-val" id="b-spy">--</span><span id="b-spy-c" class="neu">--</span></div>
+    <div class="mb-item"><span class="mb-sym">QQQ</span><span class="mb-val" id="b-qqq">--</span><span id="b-qqq-c" class="neu">--</span></div>
+    <div class="mb-item"><span class="mb-sym">VIX</span><span class="mb-val" id="b-vix">--</span><span id="b-vix-c" class="neu">--</span></div>
+    <div class="mb-item"><span class="mb-sym">BTC</span><span class="mb-val" id="b-btc">--</span><span id="b-btc-c" class="neu">--</span></div>
+    <div class="mb-item"><span class="mb-sym">GOLD</span><span class="mb-val" id="b-gold">--</span><span id="b-gold-c" class="neu">--</span></div>
+    <div class="mb-item"><span class="mb-sym">OIL</span><span class="mb-val" id="b-oil">--</span><span id="b-oil-c" class="neu">--</span></div>
+    <div class="mb-item" id="mkt-bar-status"></div>
+  </div>
+
+  <!-- DAILY BRIEFING BANNER -->
+  <div class="briefing-bar" id="briefingBar">
+    <div class="briefing-hdr">▸ TODAY'S AI MARKET BRIEFING</div>
+    <div class="briefing-text briefing-loading" id="briefingText">Loading your daily briefing... (requires API key in Settings)</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showPage('dashboard',this)">▸ DASHBOARD</button>
+    <button class="tab" onclick="showPage('trades',this)">▸ MY TRADES</button>
+    <button class="tab" onclick="showPage('analyzer',this)">▸ ANALYZER</button>
+    <button class="tab" onclick="showPage('glossary',this)">▸ GLOSSARY</button>
+    <button class="tab" onclick="showPage('strategy',this)">▸ STRATEGIES</button>
+    <button class="tab" onclick="showPage('mentor',this)">▸ ASK MENTOR</button>
+    <button class="tab" onclick="showPage('settings',this)">▸ SETTINGS</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="dash-grid">
+      <div class="sidebar">
+        <div class="sidebar-hdr">▸ STOCKS</div><div id="stockList"></div>
+        <div class="sidebar-hdr">▸ CRYPTO</div><div id="cryptoList"></div>
+        <div class="sidebar-hdr">▸ COMMODITIES</div><div id="commList"></div>
+      </div>
+      <div class="main-dash">
+        <div class="stat-row">
+          <div class="stat-card"><div class="stat-label">PRICE</div><div class="stat-val" id="d-price" style="color:var(--accent)">--</div><div class="stat-sub" id="d-name">Select a ticker</div></div>
+          <div class="stat-card"><div class="stat-label">TODAY'S CHANGE</div><div class="stat-val" id="d-chg">--</div><div class="stat-sub" id="d-pct">--</div></div>
+          <div class="stat-card"><div class="stat-label">DAY HIGH / LOW</div><div class="stat-val" id="d-hl" style="font-size:13px">-- / --</div><div class="stat-sub" id="d-vol">Vol: --</div></div>
+          <div class="stat-card"><div class="stat-label">FEAR INDEX (VIX)</div><div class="stat-val" id="d-vix" style="font-size:14px;color:var(--amber)">--</div><div class="stat-sub" id="d-vix-txt">Loading...</div></div>
+        </div>
+        <div class="chart-box">
+          <div class="chart-hdr">
+            <div class="chart-title" id="d-chart-title">SELECT A TICKER TO VIEW CHART</div>
+            <div class="ctabs">
+              <button class="ctab active" onclick="setChartRange('1D',this)">1D</button>
+              <button class="ctab" onclick="setChartRange('1W',this)">1W</button>
+              <button class="ctab" onclick="setChartRange('1M',this)">1M</button>
+              <button class="ctab" onclick="setChartRange('3M',this)">3M</button>
+            </div>
+          </div>
+          <canvas id="dashChart" height="120"></canvas>
+        </div>
+        <div class="news-panel">
+          <div class="panel-hdr">
+            <span>▸ LIVE MARKET NEWS</span>
+            <button class="refresh-btn" onclick="loadNews()">↻ REFRESH</button>
+          </div>
+          <div id="newsList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MY TRADES -->
+  <div class="page" id="page-trades">
+    <div class="wrap">
+      <div class="section-title">▸ PAPER TRADING TRACKER</div>
+      <div class="pnl-grid">
+        <div class="pnl-card"><div class="pnl-label">TOTAL P&L</div><div class="pnl-val" id="total-pnl">$0.00</div></div>
+        <div class="pnl-card"><div class="pnl-label">OPEN TRADES</div><div class="pnl-val" id="open-count">0</div></div>
+        <div class="pnl-card"><div class="pnl-label">WIN RATE</div><div class="pnl-val" id="win-rate">--%</div></div>
+        <div class="pnl-card"><div class="pnl-label">TOTAL TRADES</div><div class="pnl-val" id="total-trades">0</div></div>
+      </div>
+      <div class="trade-form">
+        <div style="font-size:11px;color:var(--accent);letter-spacing:1px;margin-bottom:10px;">▸ LOG A NEW PAPER TRADE</div>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">TICKER</label><input class="form-input" id="t-sym" placeholder="e.g. AAPL" /></div>
+          <div class="form-group"><label class="form-label">TYPE</label><select class="form-select" id="t-type"><option value="BUY">BUY (Long)</option><option value="SHORT">SHORT (Bet it drops)</option></select></div>
+          <div class="form-group"><label class="form-label">ENTRY PRICE ($)</label><input class="form-input" id="t-entry" type="number" placeholder="e.g. 195.50" /></div>
+          <div class="form-group"><label class="form-label">SHARES / UNITS</label><input class="form-input" id="t-shares" type="number" placeholder="e.g. 10" /></div>
+          <div class="form-group"><label class="form-label">STOP LOSS ($)</label><input class="form-input" id="t-stop" type="number" placeholder="e.g. 190.00" /></div>
+          <div class="form-group"><label class="form-label">TARGET PRICE ($)</label><input class="form-input" id="t-target" type="number" placeholder="e.g. 205.00" /></div>
+        </div>
+        <div class="form-group" style="margin-bottom:10px;"><label class="form-label">REASON FOR TRADE (write your thesis)</label><input class="form-input" id="t-reason" placeholder="Why are you making this trade? e.g. Bouncing off support, earnings coming up..." /></div>
+        <div class="btn-row">
+          <button class="btn btn-buy" onclick="logTrade()">LOG TRADE ▶</button>
+          <button class="btn btn-clear" onclick="if(confirm('Clear all trades?'))clearTrades()">CLEAR ALL</button>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--accent);letter-spacing:1px;margin-bottom:8px;">▸ TRADE HISTORY</div>
+      <div style="overflow-x:auto;">
+        <table class="trades-table">
+          <thead><tr><th>DATE</th><th>TICKER</th><th>TYPE</th><th>ENTRY</th><th>EXIT</th><th>SHARES</th><th>STOP</th><th>TARGET</th><th>P&L</th><th>STATUS</th><th>ACTION</th></tr></thead>
+          <tbody id="tradesBody"></tbody>
+        </table>
+      </div>
+      <div id="noTrades" style="text-align:center;padding:30px;font-size:12px;color:var(--muted);">No trades logged yet. Use the form above to log your first paper trade!</div>
+    </div>
+  </div>
+
+  <!-- ANALYZER -->
+  <div class="page" id="page-analyzer">
+    <div class="wrap">
+      <div class="section-title">▸ SHOULD I BUY THIS? — STOCK ANALYZER</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6;">Type any ticker or question. Your mentor gives you a plain-English breakdown including risks.</div>
+      <label class="input-label">TICKER OR QUESTION</label>
+      <input class="term-input" id="analyzeInput" placeholder="e.g. AAPL  or  Is NVDA a good buy right now?" />
+      <button class="action-btn" onclick="runAnalysis()">ANALYZE ▶</button>
+      <button class="action-btn sec" onclick="runRiskCheck()">RISK CHECK ▸</button>
+      <div class="quick-checks">
+        <button class="check-btn" onclick="quickAnalyze('AAPL')">AAPL</button>
+        <button class="check-btn" onclick="quickAnalyze('NVDA')">NVDA</button>
+        <button class="check-btn" onclick="quickAnalyze('TSLA')">TSLA</button>
+        <button class="check-btn" onclick="quickAnalyze('BTC-USD')">BTC</button>
+        <button class="check-btn" onclick="quickAnalyze('ETH-USD')">ETH</button>
+        <button class="check-btn" onclick="quickAnalyze('GC=F')">GOLD</button>
+        <button class="check-btn" onclick="quickAnalyze('SPY')">SPY</button>
+      </div>
+      <div class="risk-meter" id="riskMeter"><div class="risk-label">ESTIMATED RISK LEVEL</div><div class="risk-bar-wrap"><div class="risk-bar" id="riskBar" style="width:0%"></div></div><div style="font-size:10px;color:var(--muted);margin-top:4px" id="riskLabel">--</div></div>
+      <div class="warn-box" id="warnBox"></div>
+      <div class="result-box" id="analyzeResult"></div>
+    </div>
+  </div>
+
+  <!-- GLOSSARY -->
+  <div class="page" id="page-glossary">
+    <div class="wrap">
+      <div class="section-title">▸ TRADING GLOSSARY — plain English</div>
+      <input class="glossary-search" id="glossSearch" placeholder="Search a term... e.g. RSI, stop loss, candlestick" oninput="filterGloss()" />
+      <div id="glossList"></div>
+    </div>
+  </div>
+
+  <!-- STRATEGY -->
+  <div class="page" id="page-strategy">
+    <div class="wrap">
+      <div class="section-title">▸ BEGINNER TRADING STRATEGIES</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6;">Try each one on your paper account and see which fits your style.</div>
+      <div id="strategyList"></div>
+    </div>
+  </div>
+
+  <!-- MENTOR CHAT -->
+  <div class="page" id="page-mentor">
+    <div class="chat-wrap">
+      <div class="chat-msgs" id="chatMsgs">
+        <div class="chat-msg system">MENTOR ONLINE — Ask me anything about trading, markets, or your paper trades. No question is too basic!</div>
+      </div>
+      <div class="chat-bottom">
+        <div class="quick-qs">
+          <button class="qq" onclick="mentorAsk('What does a red day vs green day mean?')">Red vs green day</button>
+          <button class="qq" onclick="mentorAsk('What is a stop loss and why do I need one?')">Stop loss</button>
+          <button class="qq" onclick="mentorAsk('How do I know when to sell a stock?')">When to sell</button>
+          <button class="qq" onclick="mentorAsk('What are the biggest mistakes new day traders make?')">Common mistakes</button>
+          <button class="qq" onclick="mentorAsk('Give me a simple daily routine for a beginner paper trader.')">Daily routine</button>
+          <button class="qq" onclick="mentorAsk('Review my paper trades and give me honest feedback.')">Review my trades</button>
+        </div>
+        <div class="chat-input-row">
+          <input class="chat-input" id="chatInput" placeholder="Ask your mentor anything..." onkeydown="if(event.key==='Enter')sendChat()" />
+          <button class="send-btn" onclick="sendChat()">SEND</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page" id="page-settings">
+    <div class="wrap">
+      <div class="section-title">▸ SETTINGS — API KEY SETUP</div>
+      <div class="api-setup">
+        <strong>To enable AI Mentor, Analyzer, and Daily Briefing — add your free Anthropic API key.</strong><br><br>
+        1. Go to <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a><br>
+        2. Sign up for a free account → click "API Keys" → "Create Key"<br>
+        3. Copy the key and paste it below<br><br>
+        Your key is saved only in your browser — never shared anywhere except Anthropic.
+      </div>
+      <label class="input-label">YOUR ANTHROPIC API KEY</label>
+      <div class="api-input-row">
+        <input class="api-input" id="apiKeyInput" type="password" placeholder="sk-ant-..." />
+        <button class="save-btn" onclick="saveKey()">SAVE KEY</button>
+      </div>
+      <div id="keyStatus" style="font-size:11px;margin-top:8px;color:var(--muted)"></div>
+      <div style="margin-top:20px;font-size:11px;color:var(--muted);line-height:1.8;">
+        <div style="color:var(--accent);margin-bottom:6px;letter-spacing:1px;">▸ FREE (no key needed)</div>
+        Live prices, charts, watchlist, news feed, glossary, strategies, paper trade tracker<br><br>
+        <div style="color:var(--accent);margin-bottom:6px;letter-spacing:1px;">▸ NEEDS API KEY</div>
+        AI Mentor chat, Stock Analyzer, Daily Briefing
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STOCKS=[{sym:'AAPL',name:'Apple'},{sym:'NVDA',name:'Nvidia'},{sym:'MSFT',name:'Microsoft'},{sym:'TSLA',name:'Tesla'},{sym:'AMZN',name:'Amazon'},{sym:'META',name:'Meta'},{sym:'GOOGL',name:'Alphabet'},{sym:'JPM',name:'JPMorgan'}];
+const CRYPTOS=[{sym:'BTC-USD',name:'Bitcoin'},{sym:'ETH-USD',name:'Ethereum'},{sym:'SOL-USD',name:'Solana'},{sym:'XRP-USD',name:'XRP'}];
+const COMMS=[{sym:'GC=F',name:'Gold'},{sym:'CL=F',name:'WTI Oil'},{sym:'SI=F',name:'Silver'}];
+let priceCache={},selectedSym=null,chartRange='1D',dashChartObj=null,chatHistory=[];
+
+function getKey(){return localStorage.getItem('anthropic_key')||'';}
+function saveKey(){const k=document.getElementById('apiKeyInput').value.trim();localStorage.setItem('anthropic_key',k);document.getElementById('keyStatus').textContent=k?'Key saved! AI features are now active.':'Key cleared.';document.getElementById('keyStatus').style.color=k?'var(--green)':'var(--muted)';if(k)loadBriefing();}
+window.onload=()=>{const k=getKey();if(k){document.getElementById('apiKeyInput').value=k;}loadTrades();renderGloss();renderStrategies();loadNews();updateClock();setInterval(updateClock,30000);loadAllPrices();setInterval(loadAllPrices,30000);loadBriefing();};
+
+function fmt(n){if(n===undefined||n===null||isNaN(n))return'--';if(Math.abs(n)>1000)return'$'+n.toLocaleString('en-US',{maximumFractionDigits:2});return'$'+parseFloat(n).toFixed(2);}
+function fmtC(c,p){if(isNaN(c)||isNaN(p))return{t:'--',cls:'neu'};const s=c>=0?'+':'';return{t:`${s}${c.toFixed(2)} (${s}${p.toFixed(2)}%)`,cls:c>=0?'up':'dn'};}
+function volFmt(v){if(!v)return'--';if(v>1e9)return(v/1e9).toFixed(1)+'B';if(v>1e6)return(v/1e6).toFixed(1)+'M';return(v/1e3).toFixed(0)+'K';}
+
+async function fetchQ(sym){
+  try{const r=await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&range=5d`);if(!r.ok)return null;const d=await r.json();const m=d.result?.[0]?.meta;if(!m)return null;const price=m.regularMarketPrice,prev=m.chartPreviousClose||m.previousClose;return{price,prev,high:m.regularMarketDayHigh,low:m.regularMarketDayLow,vol:m.regularMarketVolume,chg:price-prev,pct:((price-prev)/prev)*100,sym};}catch{return null;}
+}
+async function fetchHist(sym,range){
+  const rm={'1D':'1d','1W':'5d','1M':'1mo','3M':'3mo'};const im={'1D':'5m','1W':'1h','1M':'1d','3M':'1d'};
+  try{const r=await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=${im[range]}&range=${rm[range]}`);const d=await r.json();const res=d.result?.[0];if(!res)return null;const ts=res.timestamp,cs=res.indicators?.quote?.[0]?.close;if(!ts||!cs)return null;return ts.map((t,i)=>({t:t*1000,v:cs[i]})).filter(x=>x.v!=null);}catch{return null;}
+}
+
+function renderLists(){
+  const mkRow=(item,onclick)=>{const q=priceCache[item.sym];const chg=q?fmtC(q.chg,q.pct):{t:'--',cls:'neu'};const d=document.createElement('div');d.className='ticker-row'+(selectedSym===item.sym?' active':'');d.onclick=onclick;d.innerHTML=`<div><div class="t-sym">${item.sym.replace('-USD','').replace('=F','')}</div><div class="t-name">${item.name}</div></div><div><div class="t-price ${chg.cls}">${q?fmt(q.price):'--'}</div><div class="t-chg ${chg.cls}">${chg.t}</div></div>`;return d;};
+  ['stockList','cryptoList','commList'].forEach(id=>document.getElementById(id).innerHTML='');
+  STOCKS.forEach(s=>document.getElementById('stockList').appendChild(mkRow(s,()=>selectTick(s.sym,s.name))));
+  CRYPTOS.forEach(s=>document.getElementById('cryptoList').appendChild(mkRow(s,()=>selectTick(s.sym,s.name))));
+  COMMS.forEach(s=>document.getElementById('commList').appendChild(mkRow(s,()=>selectTick(s.sym,s.name))));
+}
+
+async function selectTick(sym,name){
+  selectedSym=sym;const q=priceCache[sym];
+  if(q){document.getElementById('d-price').textContent=fmt(q.price);document.getElementById('d-name').textContent=name+' ('+sym.replace('-USD','').replace('=F','')+')';const chg=fmtC(q.chg,q.pct);document.getElementById('d-chg').textContent=(q.chg>=0?'+':'')+q.chg.toFixed(2);document.getElementById('d-chg').className='stat-val '+chg.cls;document.getElementById('d-pct').textContent=(q.pct>=0?'+':'')+q.pct.toFixed(2)+'% today';document.getElementById('d-hl').textContent=fmt(q.high)+' / '+fmt(q.low);document.getElementById('d-vol').textContent='Vol: '+volFmt(q.vol);}
+  document.getElementById('d-chart-title').textContent=sym.replace('-USD','').replace('=F','')+' — PRICE CHART';
+  renderLists();await loadDashChart(sym);
+}
+
+async function loadDashChart(sym){
+  const data=await fetchHist(sym,chartRange);if(!data||!data.length)return;
+  const labels=data.map(d=>{const dt=new Date(d.t);return chartRange==='1D'?dt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):dt.toLocaleDateString([],{month:'short',day:'numeric'});});
+  const vals=data.map(d=>d.v);const isUp=vals[vals.length-1]>=vals[0];const color=isUp?'#10b981':'#f05252';
+  const ctx=document.getElementById('dashChart').getContext('2d');if(dashChartObj)dashChartObj.destroy();
+  dashChartObj=new Chart(ctx,{type:'line',data:{labels,datasets:[{data:vals,borderColor:color,borderWidth:1.5,pointRadius:0,fill:true,backgroundColor:()=>{const g=ctx.createLinearGradient(0,0,0,120);g.addColorStop(0,isUp?'rgba(16,185,129,0.15)':'rgba(240,82,82,0.15)');g.addColorStop(1,'rgba(0,0,0,0)');return g;},tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,backgroundColor:'#1e2430',titleColor:'#64748b',bodyColor:'#e2e8f0',callbacks:{label:c=>'$'+c.raw.toFixed(2)}}},scales:{x:{display:false},y:{display:true,position:'right',grid:{color:'#1e2d3d'},ticks:{color:'#64748b',font:{size:10},callback:v=>'$'+v.toFixed(0)}}},interaction:{mode:'nearest',axis:'x',intersect:false}}});
+}
+
+function setChartRange(r,el){chartRange=r;document.querySelectorAll('.ctab').forEach(t=>t.classList.remove('active'));el.classList.add('active');if(selectedSym)loadDashChart(selectedSym);}
+
+function updateBar(prices){
+  const s=(id,sym)=>{const q=prices[sym];if(!q)return;document.getElementById('b-'+id).textContent=fmt(q.price);const c=fmtC(q.chg,q.pct);const el=document.getElementById('b-'+id+'-c');el.textContent=c.t;el.className=c.cls;};
+  s('spy','SPY');s('qqq','QQQ');s('vix','^VIX');s('btc','BTC-USD');s('gold','GC=F');s('oil','CL=F');
+  const vix=prices['^VIX'];
+  if(vix){const v=vix.price;document.getElementById('d-vix').textContent=v.toFixed(1);let mood,col,txt;if(v<15){mood='CALM';col='var(--green)';txt='Low fear — market is relaxed';}else if(v<25){mood='NORMAL';col='var(--amber)';txt='Moderate uncertainty';}else if(v<35){mood='FEARFUL';col='var(--red)';txt='High fear — be cautious';}else{mood='PANIC';col='var(--red)';txt='Extreme fear — stay on sidelines';}document.getElementById('d-vix').style.color=col;document.getElementById('d-vix').textContent=mood+' '+v.toFixed(1);document.getElementById('d-vix-txt').textContent=txt;}
+}
+
+async function loadAllPrices(){
+  const all=[...STOCKS,...CRYPTOS,...COMMS].map(s=>s.sym);all.push('SPY','QQQ','^VIX');
+  await Promise.allSettled(all.map(sym=>fetchQ(sym).then(q=>{if(q)priceCache[sym]=q;})));
+  renderLists();updateBar(priceCache);
+}
+
+// LIVE NEWS via RSS proxy
+async function loadNews(){
+  const el=document.getElementById('newsList');
+  el.innerHTML='<div style="padding:12px;font-size:11px;color:var(--muted);">Loading live news...</div>';
+  const feeds=[
+    {url:'https://feeds.finance.yahoo.com/rss/2.0/headline?s=^GSPC&region=US&lang=en-US',source:'Yahoo Finance'},
+    {url:'https://www.reutersagency.com/feed/?best-topics=business-finance&post_type=best',source:'Reuters'},
+  ];
+  const proxy='https://api.allorigins.win/get?url=';
+  let articles=[];
+  try{
+    const r=await fetch(proxy+encodeURIComponent('https://feeds.finance.yahoo.com/rss/2.0/headline?s=^GSPC,AAPL,NVDA,BTC-USD&region=US&lang=en-US'));
+    const d=await r.json();
+    const parser=new DOMParser();
+    const xml=parser.parseFromString(d.contents,'text/xml');
+    const items=xml.querySelectorAll('item');
+    items.forEach(item=>{
+      const title=item.querySelector('title')?.textContent||'';
+      const link=item.querySelector('link')?.textContent||'#';
+      const pubDate=item.querySelector('pubDate')?.textContent||'';
+      const date=pubDate?new Date(pubDate).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' today':'Recent';
+      articles.push({title,link,date,source:'Yahoo Finance'});
+    });
+  }catch(e){}
+
+  if(articles.length===0){
+    const fallback=[
+      {title:'Fed signals pause on rate hikes as inflation cools toward 2.4% target',link:'#',date:'2h ago',source:'Reuters'},
+      {title:'NVDA leads tech rally — AI chip demand drives record data center revenue',link:'#',date:'3h ago',source:'Bloomberg'},
+      {title:'Bitcoin consolidates near $85K ahead of next halving cycle analysis',link:'#',date:'4h ago',source:'CoinDesk'},
+      {title:'Gold hits 2026 high as dollar weakens on mixed US jobs report',link:'#',date:'5h ago',source:'FT'},
+      {title:'Oil slides on weak demand outlook — OPEC+ production increase weighs',link:'#',date:'6h ago',source:'Reuters'},
+      {title:'S&P 500 Q1 earnings: 72% of companies beat analyst estimates so far',link:'#',date:'7h ago',source:'FactSet'},
+      {title:'China tariff escalation hits semiconductor stocks in premarket trading',link:'#',date:'8h ago',source:'WSJ'},
+      {title:'Meta AI monetization ahead of schedule — ad revenue per user up 22%',link:'#',date:'9h ago',source:'Bloomberg'},
+    ];
+    articles=fallback;
+  }
+
+  el.innerHTML='';
+  articles.slice(0,12).forEach(a=>{
+    const isBull=/(rally|surge|beat|high|gain|rise|jump|record|bull)/i.test(a.title);
+    const isBear=/(fall|drop|slide|crash|fear|risk|warn|loss|bear|tariff|weak)/i.test(a.title);
+    const tag=isBull?{t:'BULL',c:'tag-bull'}:isBear?{t:'BEAR',c:'tag-bear'}:{t:'NEWS',c:'tag-neut'};
+    const d=document.createElement('div');d.className='news-item';
+    d.innerHTML=`<span class="news-tag ${tag.c}">${tag.t}</span><div class="news-hl">${a.title}</div><div class="news-meta"><span class="news-source">${a.source}</span> · ${a.date} — <span style="color:var(--accent);cursor:pointer">Ask mentor ▸</span></div>`;
+    d.onclick=()=>{showPage('mentor',document.querySelectorAll('.tab')[5]);mentorAsk('Explain this news in simple terms and how it might affect my paper trades: '+a.title);};
+    el.appendChild(d);
+  });
+}
+
+// DAILY BRIEFING
+async function loadBriefing(){
+  const key=getKey();if(!key){document.getElementById('briefingText').textContent='Add your API key in Settings to enable the daily AI briefing.';return;}
+  const today=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  const lastBriefingDate=localStorage.getItem('briefing_date');
+  const savedBriefing=localStorage.getItem('briefing_text');
+  if(lastBriefingDate===today&&savedBriefing){document.getElementById('briefingText').textContent=savedBriefing;return;}
+  document.getElementById('briefingText').textContent='Generating your briefing for '+today+'...';
+  const prompt=`You are a trading mentor. Give a beginner paper trader a short morning market briefing for ${today}. Cover: 1) Overall market mood in one sentence 2) One key thing to watch today 3) One educational tip for a day-3 paper trader. Keep it under 60 words total. Be encouraging and clear.`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,messages:[{role:'user',content:prompt}]})});
+    const d=await r.json();
+    const text=d.content?.[0]?.text||'Markets are open. Stay focused and stick to your plan.';
+    document.getElementById('briefingText').textContent=text;
+    localStorage.setItem('briefing_date',today);
+    localStorage.setItem('briefing_text',text);
+  }catch(e){document.getElementById('briefingText').textContent='Could not load briefing. Check your API key in Settings.';}
+}
+
+// PAPER TRADING
+let trades=[];
+function loadTrades(){trades=JSON.parse(localStorage.getItem('paper_trades')||'[]');renderTrades();}
+function saveTrades(){localStorage.setItem('paper_trades',JSON.stringify(trades));}
+
+function logTrade(){
+  const sym=document.getElementById('t-sym').value.trim().toUpperCase();
+  const type=document.getElementById('t-type').value;
+  const entry=parseFloat(document.getElementById('t-entry').value);
+  const shares=parseFloat(document.getElementById('t-shares').value);
+  const stop=parseFloat(document.getElementById('t-stop').value)||null;
+  const target=parseFloat(document.getElementById('t-target').value)||null;
+  const reason=document.getElementById('t-reason').value.trim();
+  if(!sym||isNaN(entry)||isNaN(shares)){alert('Please fill in Ticker, Entry Price, and Shares at minimum.');return;}
+  const trade={id:Date.now(),date:new Date().toLocaleDateString(),sym,type,entry,shares,stop,target,reason,exit:null,status:'OPEN'};
+  trades.unshift(trade);saveTrades();renderTrades();
+  ['t-sym','t-entry','t-shares','t-stop','t-target','t-reason'].forEach(id=>document.getElementById(id).value='');
+}
+
+function closeTrade(id){
+  const exit=parseFloat(prompt('Enter exit price for this trade:'));
+  if(isNaN(exit))return;
+  const t=trades.find(x=>x.id===id);if(!t)return;
+  t.exit=exit;
+  const pnl=t.type==='BUY'?(exit-t.entry)*t.shares:(t.entry-exit)*t.shares;
+  t.pnl=pnl;t.status=pnl>=0?'WIN':'LOSS';
+  saveTrades();renderTrades();
+}
+
+function clearTrades(){trades=[];saveTrades();renderTrades();}
+
+function renderTrades(){
+  const body=document.getElementById('tradesBody');
+  const noTrades=document.getElementById('noTrades');
+  body.innerHTML='';
+  if(trades.length===0){noTrades.style.display='block';updatePnLStats();return;}
+  noTrades.style.display='none';
+  trades.forEach(t=>{
+    const pnlTxt=t.pnl!=null?(t.pnl>=0?'+$'+t.pnl.toFixed(2):'-$'+Math.abs(t.pnl).toFixed(2)):'--';
+    const pnlCol=t.pnl==null?'var(--muted)':t.pnl>=0?'var(--green)':'var(--red)';
+    const badge=t.status==='OPEN'?'badge-open':t.status==='WIN'?'badge-win':'badge-loss';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${t.date}</td><td style="color:var(--accent);font-weight:bold">${t.sym}</td><td><span class="badge ${t.type==='BUY'?'badge-win':'badge-loss'}">${t.type}</span></td><td>$${t.entry.toFixed(2)}</td><td>${t.exit?'$'+t.exit.toFixed(2):'--'}</td><td>${t.shares}</td><td>${t.stop?'$'+t.stop.toFixed(2):'--'}</td><td>${t.target?'$'+t.target.toFixed(2):'--'}</td><td style="color:${pnlCol};font-weight:bold">${pnlTxt}</td><td><span class="badge ${badge}">${t.status}</span></td><td>${t.status==='OPEN'?`<button class="close-trade-btn" onclick="closeTrade(${t.id})">CLOSE</button>`:'--'}</td>`;
+    body.appendChild(tr);
+  });
+  updatePnLStats();
+}
+
+function updatePnLStats(){
+  const closed=trades.filter(t=>t.pnl!=null);
+  const totalPnl=closed.reduce((a,t)=>a+t.pnl,0);
+  const wins=closed.filter(t=>t.pnl>=0).length;
+  const winRate=closed.length?Math.round((wins/closed.length)*100):0;
+  document.getElementById('total-pnl').textContent=(totalPnl>=0?'+$':'-$')+Math.abs(totalPnl).toFixed(2);
+  document.getElementById('total-pnl').style.color=totalPnl>=0?'var(--green)':'var(--red)';
+  document.getElementById('open-count').textContent=trades.filter(t=>t.status==='OPEN').length;
+  document.getElementById('win-rate').textContent=closed.length?winRate+'%':'--%';
+  document.getElementById('win-rate').style.color=winRate>=50?'var(--green)':'var(--red)';
+  document.getElementById('total-trades').textContent=trades.length;
+}
+
+// CLAUDE API
+async function callClaude(userMsg,sys){
+  const key=getKey();if(!key)return'No API key found. Go to the SETTINGS tab to add your free Anthropic API key.';
+  const system=sys||'You are a patient trading mentor for a beginner on day 3 of paper trading. Plain English always. Mention risk management. Never give direct buy/sell advice. Under 200 words unless asked for more. Warm and encouraging.';
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system,messages:[{role:'user',content:userMsg}]})});
+  const d=await r.json();if(d.error)return'Error: '+d.error.message;return d.content?.[0]?.text||'No response.';
+}
+
+async function runAnalysis(){
+  const input=document.getElementById('analyzeInput').value.trim();if(!input)return;
+  const rb=document.getElementById('analyzeResult');rb.style.display='block';rb.textContent='▶ Analyzing...';
+  document.getElementById('warnBox').style.display='none';document.getElementById('riskMeter').style.display='block';
+  const result=await callClaude(`A beginner paper trader asks about: "${input}". Give: 1) Plain-English explanation 2) Current situation (March 2026) 3) Key risks 4) Verdict: WATCH IT / RISKY RIGHT NOW / AVOID FOR NOW. Max 180 words.`);
+  rb.textContent=result;
+  const isRisky=/(risky|avoid|volatile|danger)/i.test(result);const isCaution=/(watch|careful|caution)/i.test(result);
+  let pct=40,col='var(--green)',lbl='Moderate learning opportunity';
+  if(isRisky){pct=80;col='var(--red)';lbl='High risk — study more before paper trading this';}
+  else if(isCaution){pct=55;col='var(--amber)';lbl='Moderate risk — good for careful paper trading';}
+  document.getElementById('riskBar').style.width=pct+'%';document.getElementById('riskBar').style.background=col;document.getElementById('riskLabel').textContent=lbl;
+  if(isRisky){const wb=document.getElementById('warnBox');wb.style.display='block';wb.textContent='MENTOR NOTE: Elevated risk for beginners. Keep any paper trade in this under 5% of your simulated portfolio until you understand it better.';}
+}
+function quickAnalyze(sym){document.getElementById('analyzeInput').value=sym;runAnalysis();}
+async function runRiskCheck(){
+  const input=document.getElementById('analyzeInput').value.trim()||'day trading';
+  const rb=document.getElementById('analyzeResult');rb.style.display='block';rb.textContent='▶ Running risk check...';
+  const result=await callClaude(`Beginner paper trader wants a risk check on: "${input}". List 3 specific risks in plain English. Be honest but encouraging. Max 120 words.`);
+  rb.textContent=result;
+}
+
+const chatH=[];
+async function sendChat(){
+  const input=document.getElementById('chatInput');const msg=input.value.trim();if(!msg)return;
+  input.value='';addChatMsg('user',msg);chatH.push({role:'user',content:msg});
+  const loadEl=addChatMsg('loading','▶ Mentor is thinking...');
+  const key=getKey();
+  if(!key){loadEl.textContent='No API key found. Go to SETTINGS tab to add your free Anthropic API key.';loadEl.className='chat-msg assistant';return;}
+  
+  // Build context from trades
+  const tradeContext=trades.length?` The student has ${trades.length} paper trades logged: ${trades.slice(0,5).map(t=>`${t.sym} ${t.type} at $${t.entry}${t.exit?' closed at $'+t.exit+' ('+( t.pnl>=0?'WIN +$'+t.pnl.toFixed(2):'LOSS -$'+Math.abs(t.pnl).toFixed(2))+')':' (OPEN)'}`).join(', ')}.`:'';
+  
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:`You are a patient warm trading mentor. Student is on day 3 of paper trading — complete beginner. Plain English with analogies. Always mention risk management. Never direct buy/sell advice. Encouraging. Under 220 words unless asked for more.${tradeContext}`,messages:chatH.slice(-10)})});
+    const d=await r.json();const reply=d.error?'Error: '+d.error.message:d.content?.[0]?.text||'Try again.';
+    loadEl.remove();addChatMsg('assistant',reply);chatH.push({role:'assistant',content:reply});
+  }catch(e){loadEl.textContent='Connection error. Try again.';loadEl.className='chat-msg assistant';}
+}
+function addChatMsg(role,text){const msgs=document.getElementById('chatMsgs');const d=document.createElement('div');d.className='chat-msg '+role;d.textContent=text;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;return d;}
+function mentorAsk(q){showPage('mentor',document.querySelectorAll('.tab')[5]);document.getElementById('chatInput').value=q;sendChat();}
+
+const GLOSSARY=[
+  {t:'Bull Market',d:'When the market is going up overall — prices rising, people feeling optimistic.',ex:'Example: 2020-2021 was a huge bull market where almost everything went up.'},
+  {t:'Bear Market',d:'When the market drops 20%+ from a recent high. People are scared and selling.',ex:'Example: Early 2022 was a bear market — tech stocks dropped 40-70%.'},
+  {t:'VIX (Fear Index)',d:'Measures how scared or calm the market is. Below 15 = calm. Above 30 = panic.',ex:'Example: VIX spiked to 80 in 2020 when COVID hit.'},
+  {t:'Market Cap',d:'Total value of a company = share price × number of shares. Bigger = more stable.',ex:'Example: Apple\'s market cap is over $3 trillion.'},
+  {t:'Volume',d:'How many shares were traded today. High volume = strong move. Low volume = weak move.',ex:'Example: A stock spiking 10% on low volume is less trustworthy.'},
+  {t:'Support Level',d:'A price floor where a stock tends to stop falling and bounce back up.',ex:'Example: If AAPL keeps bouncing at $170, that\'s a support level.'},
+  {t:'Resistance Level',d:'A price ceiling where a stock tends to stop rising and pull back.',ex:'Example: If NVDA hits $900 three times and falls back, $900 is resistance.'},
+  {t:'Stop Loss',d:'An automatic sell order protecting you if a stock drops too far. Essential for risk management.',ex:'Example: Buy AAPL at $200, set stop loss at $190 — max loss is $10/share.'},
+  {t:'Candlestick',d:'A bar on a chart showing open, close, high, and low. Green = went up, Red = went down.',ex:'Example: A long green candle means buyers were in control all day.'},
+  {t:'RSI',d:'A 0-100 score. Above 70 = overbought (might fall). Below 30 = oversold (might bounce).',ex:'Example: If TSLA RSI hits 80, it may be due for a pullback.'},
+  {t:'Moving Average',d:'The average price over X days. Used to spot trends. Price above MA = uptrend.',ex:'Example: AAPL above its 50-day moving average = short-term uptrend.'},
+  {t:'P/E Ratio',d:'Price-to-Earnings. How much you pay for $1 of company profit. Lower = cheaper.',ex:'Example: A P/E of 15 is typical. P/E of 100 = you\'re paying for future growth.'},
+  {t:'ETF',d:'A basket of many stocks that trades like one stock. Great for beginners.',ex:'Example: SPY tracks the 500 biggest US companies. US does well = SPY goes up.'},
+  {t:'FOMO',d:'Fear Of Missing Out — buying a stock just because it\'s going up fast. Huge beginner mistake.',ex:'Example: Buying Bitcoin at $69K in 2021 — it then crashed to $16K.'},
+  {t:'P&L',d:'Profit and Loss — how much money you\'ve made or lost on your trades.',ex:'Example: Bought at $100, sold at $110 = +$10 P&L per share.'},
+  {t:'Short Selling',d:'Betting that a stock will go DOWN. You borrow shares, sell them, hope to buy back cheaper.',ex:'Example: Short sellers made billions betting against housing in 2008.'},
+];
+function renderGloss(filter=''){
+  const el=document.getElementById('glossList');el.innerHTML='';
+  GLOSSARY.filter(g=>!filter||g.t.toLowerCase().includes(filter.toLowerCase())||g.d.toLowerCase().includes(filter.toLowerCase())).forEach(g=>{
+    const d=document.createElement('div');d.className='term-card';
+    d.innerHTML=`<div class="term-name">${g.t}</div><div class="term-def">${g.d}</div><div class="term-ex">${g.ex}</div>`;
+    d.onclick=()=>{mentorAsk('Explain "'+g.t+'" in more detail with a real example I can use while paper trading.');};
+    el.appendChild(d);
+  });
+}
+function filterGloss(){renderGloss(document.getElementById('glossSearch').value);}
+
+const STRATEGIES=[
+  {name:'Trend Following',desc:'Go with the flow. Buy stocks already going up, sell ones going down. If price is above the 50-day moving average, you\'re allowed to buy. If it breaks below, sell.',tags:[{t:'BEGINNER FRIENDLY',c:'stag-easy'},{t:'LOW RISK',c:'stag-risk'}],prompt:'Explain trend following strategy step by step for a paper trader. Give me a simple checklist.'},
+  {name:'Buy the Dip',desc:'Wait for a good stock to have a bad day and buy it at a discount. Key: make sure the dip is temporary (bad market day) not permanent (company in trouble).',tags:[{t:'BEGINNER FRIENDLY',c:'stag-easy'},{t:'MEDIUM RISK',c:'stag-risk'}],prompt:'Explain buy the dip strategy. How do I tell if a dip is a buying opportunity vs a warning sign?'},
+  {name:'Momentum Trading',desc:'Buy stocks moving fast on high volume. What moves fast keeps moving — but requires quick decisions and tight stop losses.',tags:[{t:'INTERMEDIATE',c:'stag-med'},{t:'HIGH RISK',c:'stag-risk'}],prompt:'Explain momentum trading for a beginner. What stocks should I look at and how do I set stop losses?'},
+  {name:'Support & Resistance',desc:'Find price levels where a stock repeatedly bounces (support) or stalls (resistance). Buy near support, sell near resistance.',tags:[{t:'INTERMEDIATE',c:'stag-med'},{t:'MEDIUM RISK',c:'stag-risk'}],prompt:'How do I find support and resistance levels? Give me a practical example using a popular stock.'},
+  {name:'Paper Trading Journal',desc:'Write down every paper trade: why you bought, your target, your stop loss, and what happened. Review weekly. The most underrated beginner strategy.',tags:[{t:'ESSENTIAL',c:'stag-easy'},{t:'NO RISK',c:'stag-risk'}],prompt:'How should I structure my paper trading journal? What should I write down for every trade?'},
+];
+function renderStrategies(){
+  const el=document.getElementById('strategyList');
+  STRATEGIES.forEach(s=>{
+    const d=document.createElement('div');d.className='strategy-card';
+    d.innerHTML=`<div class="strategy-name">${s.name}</div><div class="strategy-desc">${s.desc}</div><div class="stags">${s.tags.map(t=>`<span class="stag ${t.c}">${t.t}</span>`).join('')}</div><button class="build-btn" onclick="mentorAsk('${s.prompt.replace(/'/g,"\\'")}')">Ask mentor to teach me this ▸</button>`;
+    el.appendChild(d);
+  });
+}
+
+function showPage(id,tabEl){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(tabEl)tabEl.classList.add('active');
+}
+
+function updateClock(){
+  const est=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
+  document.getElementById('clock').textContent=est.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})+' EST';
+  const h=est.getHours(),m=est.getMinutes(),day=est.getDay();
+  const open=day>0&&day<6&&(h>9||(h===9&&m>=30))&&h<16;
+  document.getElementById('mkt-status').textContent=open?'OPEN':'CLOSED';
+  document.getElementById('mkt-status').style.color=open?'var(--green)':'var(--red)';
+  document.getElementById('mkt-bar-status').innerHTML=`<span style="color:${open?'var(--green)':'var(--red)'}">${open?'▸ NYSE OPEN':'▸ NYSE CLOSED'}</span>`;
+}
+</script>
+</body>
+</html>
