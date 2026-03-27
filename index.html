@@ -54,7 +54,7 @@ body{background:var(--bg);font-family:var(--font);color:var(--text);margin:0;min
   100%{background-position:400% center}
 }
 .logo{
-  font-size:16px;font-weight:bold;letter-spacing:3px;
+  font-size:22px;font-weight:bold;letter-spacing:4px;
   background:linear-gradient(90deg,#1e1e1e 0%,#2e2e2e 15%,#1a1a1a 30%,#111 40%,rgba(255,255,255,0.0) 44%,rgba(255,255,255,0.85) 50%,rgba(255,255,255,0.0) 56%,#111 60%,#1a1a1a 75%,#2e2e2e 90%,#1e1e1e 100%);
   background-size:400% auto;
   -webkit-background-clip:text;
@@ -867,18 +867,25 @@ async function loadBriefing(){
   const today=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
   const savedDate=localStorage.getItem('briefing_date');
   const savedText=localStorage.getItem('briefing_text');
-  if(savedDate===today&&savedText){
+  // Only use cache if it was saved today AND doesn't contain stale info
+  if(savedDate===today&&savedText&&!savedText.includes('Markets open')){
     const el=document.getElementById('briefingText');
     el.textContent=savedText;el.style.color='var(--text)';el.style.fontStyle='normal';return;
   }
+  // Clear any stale cache
+  localStorage.removeItem('briefing_date');localStorage.removeItem('briefing_text');
   document.getElementById('briefingText').textContent='Generating your briefing for '+today+'...';
   try{
+    const cst=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Chicago'}));
+    const h=cst.getHours(),m=cst.getMinutes(),day=cst.getDay();
+    const mktOpen=day>0&&day<6&&(h>8||(h===8&&m>=30))&&h<15;
+    const mktStatus=mktOpen?'NYSE is currently OPEN':'NYSE is currently CLOSED for the day';
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,
-        messages:[{role:'user',content:`Give a beginner paper trader a short morning market briefing for ${today}. 1) Overall market mood in one sentence 2) One key thing to watch today 3) One quick tip. Under 60 words. Encouraging and clear.`}]})});
+        messages:[{role:'user',content:`Give a beginner paper trader a short market briefing for ${today}. Note: ${mktStatus}. Cover: 1) Current market status 2) One key thing to watch 3) One quick tip. Under 60 words. Encouraging and clear.`}]})});
     const d=await r.json();
-    const text=d.content?.[0]?.text||'Markets open. Stay patient and stick to your plan today.';
+    const text=d.content?.[0]?.text||'Check your watchlist and review your open trades today.';
     const el=document.getElementById('briefingText');
     el.textContent=text;el.style.color='var(--text)';el.style.fontStyle='normal';
     localStorage.setItem('briefing_date',today);localStorage.setItem('briefing_text',text);
