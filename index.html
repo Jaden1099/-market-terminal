@@ -7,7 +7,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-:root{--bg:#0a0c0f;--bg1:#111418;--bg2:#181c22;--bg3:#1e2430;--accent:#00d4aa;--accent2:#3b82f6;--red:#f05252;--green:#10b981;--amber:#f59e0b;--text:#e2e8f0;--muted:#64748b;--border:#1e2d3d;--font:'Courier New',monospace;}
+:root{--bg:#0a0c0f;--bg1:#111418;--bg2:#181c22;--bg3:#1e2430;--accent:#00d4aa;--accent2:#3b82f6;--red:#f05252;--green:#10b981;--amber:#f59e0b;--text:#e2e8f0;--muted:#64748b;--border:#1e2d3d;--font:'Times New Roman',Times,serif;}
 body{background:var(--bg);font-family:var(--font);color:var(--text);margin:0;min-height:100vh;}
 .terminal{min-height:100vh;display:flex;flex-direction:column;}
 .topbar{background:var(--bg1);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
@@ -35,6 +35,12 @@ body{background:var(--bg);font-family:var(--font);color:var(--text);margin:0;min
 .ticker-row{padding:8px 12px;border-bottom:1px solid #111;cursor:pointer;display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:4px;transition:background 0.1s;}
 .ticker-row:hover{background:var(--bg3);}
 .ticker-row.active{background:var(--bg3);border-left:2px solid var(--accent);}
+.ticker-row.row-up{border-left:2px solid var(--green);background:rgba(16,185,129,0.04);}
+.ticker-row.row-up:hover{background:rgba(16,185,129,0.08);}
+.ticker-row.row-up.active{background:rgba(16,185,129,0.12);}
+.ticker-row.row-dn{border-left:2px solid var(--red);background:rgba(240,82,82,0.04);}
+.ticker-row.row-dn:hover{background:rgba(240,82,82,0.08);}
+.ticker-row.row-dn.active{background:rgba(240,82,82,0.12);}
 .t-sym{font-size:13px;font-weight:bold;}.t-name{font-size:10px;color:var(--muted);margin-top:1px;}
 .t-price{font-size:12px;font-weight:bold;text-align:right;}.t-chg{font-size:10px;text-align:right;margin-top:1px;}
 .remove-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 2px;line-height:1;opacity:0;}
@@ -468,8 +474,12 @@ function renderWatchlist(){
     const chg=q&&q.chg!=null?fmtC(q.chg,q.pct):{t:'--',cls:'neu'};
     const priceStr=q?fmt(q.price):'--';
     const displaySym=getDisplaySym(item.sym);
+    // color code row based on movement
+    let colorClass='';
+    if(q&&q.chg!=null){colorClass=q.chg>=0?'row-up':'row-dn';}
+    const isActive=selectedSym===item.sym;
     const d=document.createElement('div');
-    d.className='ticker-row'+(selectedSym===item.sym?' active':'');
+    d.className='ticker-row'+' '+colorClass+(isActive?' active':'');
     d.innerHTML=`
       <div onclick="selectTick('${item.sym}','${item.name||item.sym}','${displaySym}')">
         <div class="t-sym">${displaySym}</div>
