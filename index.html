@@ -47,7 +47,20 @@ body{background:var(--bg);font-family:var(--font);color:var(--text);margin:0;min
   box-shadow:0 1px 0 rgba(255,255,255,0.03);
   padding:8px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
 }
-.logo{color:var(--accent);font-size:16px;font-weight:bold;letter-spacing:3px;text-shadow:0 0 20px rgba(232,232,232,0.15);}
+@keyframes metalShine{
+  0%{background-position:-200% center}
+  30%{background-position:200% center}
+  100%{background-position:200% center}
+}
+.logo{
+  font-size:16px;font-weight:bold;letter-spacing:3px;
+  background:linear-gradient(90deg,#2a2a2a 0%,#3a3a3a 20%,#1a1a1a 38%,rgba(255,255,255,0.7) 48%,rgba(255,255,255,0.9) 50%,rgba(255,255,255,0.7) 52%,#1a1a1a 62%,#3a3a3a 80%,#2a2a2a 100%);
+  background-size:300% auto;
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:metalShine 10s ease-in-out infinite;
+}
 .topbar-right{display:flex;align-items:center;gap:18px;font-size:12px;color:var(--muted);}
 .live-dot{width:5px;height:5px;background:var(--green);border-radius:50%;display:inline-block;margin-right:5px;animation:breathe 3s ease-in-out infinite;box-shadow:0 0 6px var(--green);}
 .paper-badge{background:transparent;color:var(--amber);font-size:10px;padding:3px 9px;border-radius:1px;border:0.5px solid var(--amber);letter-spacing:2px;opacity:0.85;}
