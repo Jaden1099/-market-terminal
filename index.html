@@ -47,8 +47,8 @@ body{background:var(--bg);font-family:var(--font);color:var(--text);margin:0;min
   box-shadow:0 1px 0 rgba(255,255,255,0.03);
   padding:8px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
 }
-.logo{color:var(--accent);font-size:14px;font-weight:bold;letter-spacing:3px;text-shadow:0 0 20px rgba(232,232,232,0.15);}
-.topbar-right{display:flex;align-items:center;gap:18px;font-size:11px;color:var(--muted);}
+.logo{color:var(--accent);font-size:16px;font-weight:bold;letter-spacing:3px;text-shadow:0 0 20px rgba(232,232,232,0.15);}
+.topbar-right{display:flex;align-items:center;gap:18px;font-size:12px;color:var(--muted);}
 .live-dot{width:5px;height:5px;background:var(--green);border-radius:50%;display:inline-block;margin-right:5px;animation:breathe 3s ease-in-out infinite;box-shadow:0 0 6px var(--green);}
 .paper-badge{background:transparent;color:var(--amber);font-size:10px;padding:3px 9px;border-radius:1px;border:0.5px solid var(--amber);letter-spacing:2px;opacity:0.85;}
 
@@ -56,7 +56,7 @@ body{background:var(--bg);font-family:var(--font);color:var(--text);margin:0;min
 .market-bar{
   background:linear-gradient(180deg,#0f0f0f 0%,#0b0b0b 100%);
   border-bottom:0.5px solid var(--border2);
-  padding:7px 18px;display:flex;gap:28px;overflow-x:auto;font-size:11px;white-space:nowrap;
+  padding:7px 18px;display:flex;gap:28px;overflow-x:auto;font-size:13px;white-space:nowrap;
   animation:shimmer 8s ease-in-out infinite;
 }
 .mb-item{display:flex;gap:7px;align-items:center;transition:opacity 0.3s;}
@@ -69,7 +69,7 @@ body{background:var(--bg);font-family:var(--font);color:var(--text);margin:0;min
 
 /* TABS */
 .tabs{display:flex;background:linear-gradient(180deg,#0e0e0e 0%,#0a0a0a 100%);border-bottom:0.5px solid var(--border2);overflow-x:auto;}
-.tab{padding:11px 16px;font-size:11px;letter-spacing:1.5px;cursor:pointer;color:var(--muted);border-bottom:1px solid transparent;transition:all 0.2s;font-family:var(--font);background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
+.tab{padding:12px 18px;font-size:12px;letter-spacing:1.5px;cursor:pointer;color:var(--muted);border-bottom:1px solid transparent;transition:all 0.2s;font-family:var(--font);background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
 .tab.active{color:var(--text);border-bottom-color:var(--accent2);}
 .tab:hover{color:var(--text2);background:rgba(255,255,255,0.02);}
 .page{display:none;flex:1;overflow-y:auto;}
@@ -118,10 +118,10 @@ body{background:var(--bg);font-family:var(--font);color:var(--text);margin:0;min
 .ticker-row.row-dn::after{background:var(--red);}
 .ticker-row.row-dn{background:rgba(224,85,85,0.03);}
 .ticker-row.row-dn:hover{background:rgba(224,85,85,0.06);}
-.t-sym{font-size:13px;font-weight:bold;letter-spacing:0.5px;}
-.t-name{font-size:10px;color:var(--muted);margin-top:1px;letter-spacing:0.3px;}
-.t-price{font-size:12px;font-weight:bold;text-align:right;transition:color 0.4s;}
-.t-chg{font-size:10px;text-align:right;margin-top:1px;color:var(--muted);}
+.t-sym{font-size:15px;font-weight:bold;letter-spacing:0.5px;}
+.t-name{font-size:11px;color:var(--muted);margin-top:1px;letter-spacing:0.3px;}
+.t-price{font-size:14px;font-weight:bold;text-align:right;transition:color 0.4s;}
+.t-chg{font-size:11px;text-align:right;margin-top:1px;color:var(--muted);}
 .remove-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:0 3px;line-height:1;opacity:0;transition:opacity 0.2s;}
 .ticker-row:hover .remove-btn{opacity:0.6;}
 .remove-btn:hover{color:var(--red);opacity:1;}
@@ -144,9 +144,9 @@ body{background:var(--bg);font-family:var(--font);color:var(--text);margin:0;min
   transition:background 0.2s;
 }
 .stat-card:hover{background:linear-gradient(180deg,#141414 0%,#101010 100%);}
-.stat-label{font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:6px;text-transform:uppercase;}
-.stat-val{font-size:18px;font-weight:bold;letter-spacing:0.5px;transition:all 0.4s;}
-.stat-sub{font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:0.3px;}
+.stat-label{font-size:10px;color:var(--muted);letter-spacing:2px;margin-bottom:6px;text-transform:uppercase;}
+.stat-val{font-size:22px;font-weight:bold;letter-spacing:0.5px;transition:all 0.4s;}
+.stat-sub{font-size:12px;color:var(--muted);margin-top:3px;letter-spacing:0.3px;}
 
 /* CHART BOX */
 .chart-box{
@@ -155,7 +155,7 @@ body{background:var(--bg);font-family:var(--font);color:var(--text);margin:0;min
   box-shadow:inset 0 1px 0 rgba(255,255,255,0.02);
 }
 .chart-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px;}
-.chart-title{font-size:11px;font-weight:bold;letter-spacing:1px;color:var(--text2);}
+.chart-title{font-size:13px;font-weight:bold;letter-spacing:1px;color:var(--text2);}
 .ctabs{display:flex;gap:3px;}
 .ctab{font-size:10px;padding:3px 8px;border:0.5px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;border-radius:1px;font-family:var(--font);letter-spacing:1px;transition:all 0.2s;}
 .ctab:hover{color:var(--text2);border-color:var(--metal-shine);}
@@ -179,8 +179,8 @@ body{background:var(--bg);font-family:var(--font);color:var(--text);margin:0;min
 .tag-bull{background:rgba(77,204,110,0.08);color:#4dcc6e;border:0.5px solid rgba(77,204,110,0.3);}
 .tag-bear{background:rgba(224,85,85,0.08);color:#e05555;border:0.5px solid rgba(224,85,85,0.3);}
 .tag-neut{background:rgba(255,255,255,0.04);color:var(--text2);border:0.5px solid var(--border2);}
-.news-hl{font-size:12px;line-height:1.5;margin-bottom:3px;color:var(--text);letter-spacing:0.2px;}
-.news-meta{font-size:10px;color:var(--muted);letter-spacing:0.3px;}
+.news-hl{font-size:13px;line-height:1.5;margin-bottom:3px;color:var(--text);letter-spacing:0.2px;}
+.news-meta{font-size:11px;color:var(--muted);letter-spacing:0.3px;}
 
 /* WRAP PAGES */
 .wrap{padding:20px;max-width:920px;width:100%;margin:0 auto;}
@@ -268,7 +268,7 @@ body{background:var(--bg);font-family:var(--font);color:var(--text);margin:0;min
 /* CHAT */
 .chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 160px);}
 .chat-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;}
-.chat-msg{font-size:13px;line-height:1.7;padding:12px 15px;border-radius:1px;max-width:92%;animation:fadeIn 0.25s ease-out;}
+.chat-msg{font-size:14px;line-height:1.7;padding:12px 15px;border-radius:1px;max-width:92%;animation:fadeIn 0.25s ease-out;}
 .chat-msg.system{background:rgba(255,255,255,0.03);color:var(--text2);border-left:1px solid var(--metal-shine);max-width:100%;font-size:12px;}
 .chat-msg.user{background:rgba(255,255,255,0.05);color:var(--text);border-left:1px solid var(--muted);align-self:flex-end;}
 .chat-msg.assistant{background:linear-gradient(180deg,#111 0%,#0e0e0e 100%);color:var(--text);border-left:1px solid var(--border2);box-shadow:inset 0 1px 0 rgba(255,255,255,0.02);}
@@ -278,7 +278,7 @@ body{background:var(--bg);font-family:var(--font);color:var(--text);margin:0;min
 .qq{font-size:10px;padding:5px 10px;border:0.5px solid var(--border2);background:rgba(255,255,255,0.03);color:var(--muted);cursor:pointer;border-radius:1px;font-family:var(--font);letter-spacing:0.5px;transition:all 0.2s;}
 .qq:hover{border-color:var(--metal-shine);color:var(--text2);background:rgba(255,255,255,0.06);}
 .chat-input-row{display:flex;gap:8px;padding:10px 13px;}
-.chat-input{flex:1;background:rgba(255,255,255,0.04);border:0.5px solid var(--border2);color:var(--text);font-family:var(--font);font-size:13px;padding:9px 13px;outline:none;border-radius:1px;transition:all 0.2s;}
+.chat-input{flex:1;background:rgba(255,255,255,0.04);border:0.5px solid var(--border2);color:var(--text);font-family:var(--font);font-size:14px;padding:9px 13px;outline:none;border-radius:1px;transition:all 0.2s;}
 .chat-input:focus{border-color:var(--metal-shine);background:rgba(255,255,255,0.06);}
 .send-btn{background:rgba(255,255,255,0.88);color:#000;border:0.5px solid rgba(255,255,255,0.5);font-family:var(--font);font-size:11px;font-weight:bold;padding:9px 16px;cursor:pointer;border-radius:1px;letter-spacing:1.5px;transition:all 0.2s;}
 .send-btn:hover{background:#fff;box-shadow:0 0 12px rgba(255,255,255,0.08);}
@@ -321,7 +321,7 @@ body{background:var(--bg);font-family:var(--font);color:var(--text);margin:0;min
 
   <div class="briefing-bar">
     <div class="briefing-hdr">▸ TODAY'S AI MARKET BRIEFING</div>
-    <div id="briefingText" style="font-size:12px;color:var(--muted);font-style:italic;">Loading your briefing...</div>
+    <div id="briefingText" style="font-size:14px;color:var(--muted);font-style:italic;line-height:1.7;">Loading your briefing...</div>
   </div>
 
   <div class="tabs">
