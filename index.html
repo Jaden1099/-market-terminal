@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Market Terminal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#0a0c0f;--bg1:#111418;--bg2:#181c22;--bg3:#1e2430;--accent:#00d4aa;--accent2:#3b82f6;--red:#f05252;--green:#10b981;--amber:#f59e0b;--text:#e2e8f0;--muted:#64748b;--border:#1e2d3d;--font:'Courier New',monospace;}
+body{background:var(--bg);font-family:var(--font);color:var(--text);margin:0;min-height:100vh;}
+.terminal{min-height:100vh;display:flex;flex-direction:column;}
+.topbar{background:var(--bg1);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.logo{color:var(--accent);font-size:13px;font-weight:bold;letter-spacing:2px;}
+.topbar-right{display:flex;align-items:center;gap:16px;font-size:11px;color:var(--muted);}
+.live-dot{width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;margin-right:4px;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.paper-badge{background:#1a1500;color:var(--amber);font-size:10px;padding:3px 8px;border-radius:2px;border:1px solid var(--amber);letter-spacing:1px;}
+.market-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:6px 16px;display:flex;gap:24px;overflow-x:auto;font-size:11px;white-space:nowrap;}
+.mb-item{display:flex;gap:6px;align-items:center;}
+.mb-sym{color:var(--muted);}.mb-val{color:var(--text);font-weight:bold;}
+.up{color:var(--green);}.dn{color:var(--red);}.neu{color:var(--amber);}
+.tabs{display:flex;background:var(--bg1);border-bottom:1px solid var(--border);overflow-x:auto;}
+.tab{padding:10px 16px;font-size:11px;letter-spacing:1px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all 0.15s;font-family:var(--font);background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab:hover{color:var(--text);}
+.page{display:none;flex:1;overflow-y:auto;}
+.page.active{display:flex;flex-direction:column;}
+.dash-grid{display:grid;grid-template-columns:240px 1fr;flex:1;min-height:0;}
+@media(max-width:600px){.dash-grid{grid-template-columns:1fr;}}
+.sidebar{background:var(--bg1);border-right:1px solid var(--border);overflow-y:auto;max-height:80vh;}
+.sidebar-hdr{padding:7px 12px;font-size:10px;letter-spacing:2px;color:var(--accent);background:var(--bg2);border-bottom:1px solid var(--border);border-top:1px solid var(--border);}
+.ticker-row{padding:8px 12px;border-bottom:1px solid #111;cursor:pointer;display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px;transition:background 0.1s;}
+.ticker-row:hover{background:var(--bg3);}
+.ticker-row.active{background:var(--bg3);border-left:2px solid var(--accent);}
+.t-sym{font-size:13px;font-weight:bold;}.t-name{font-size:10px;color:var(--muted);margin-top:1px;}
+.t-price{font-size:12px;font-weight:bold;text-align:right;}.t-chg{font-size:10px;text-align:right;margin-top:1px;}
+.main-dash{display:flex;flex-direction:column;overflow-y:auto;}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);}
+@media(max-width:600px){.stat-row{grid-template-columns:repeat(2,1fr);}}
+.stat-card{background:var(--bg1);padding:10px 12px;}
+.stat-label{font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:4px;}
+.stat-val{font-size:16px;font-weight:bold;}
+.stat-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+.chart-box{background:var(--bg1);padding:12px;border-bottom:1px solid var(--border);}
+.chart-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px;}
+.chart-title{font-size:11px;font-weight:bold;}
+.ctabs{display:flex;gap:3px;}
+.ctab{font-size:10px;padding:2px 7px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;border-radius:2px;font-family:var(--font);}
+.ctab.active{background:var(--accent);color:#000;border-color:var(--accent);}
+.news-panel{background:var(--bg1);}
+.panel-hdr{padding:7px 12px;font-size:10px;letter-spacing:2px;color:var(--accent);background:var(--bg2);border-bottom:1px solid var(--border);}
+.news-item{padding:9px 12px;border-bottom:1px solid #111;cursor:pointer;}
+.news-item:hover{background:var(--bg2);}
+.news-tag{font-size:9px;padding:1px 5px;border-radius:2px;display:inline-block;margin-bottom:3px;font-weight:bold;letter-spacing:1px;}
+.tag-bull{background:#052e1a;color:var(--green);}.tag-bear{background:#2d0a0a;color:var(--red);}.tag-neut{background:#1a1500;color:var(--amber);}
+.news-hl{font-size:11px;line-height:1.4;margin-bottom:2px;}.news-meta{font-size:10px;color:var(--muted);}
+.wrap{padding:16px;max-width:780px;width:100%;margin:0 auto;}
+.section-title{font-size:11px;letter-spacing:2px;color:var(--accent);margin-bottom:12px;}
+.input-label{font-size:11px;color:var(--muted);margin-bottom:6px;display:block;}
+.term-input{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;border-radius:3px;margin-bottom:8px;}
+.term-input:focus{border-color:var(--accent);}
+.action-btn{background:var(--accent);color:#000;border:none;font-family:var(--font);font-size:11px;font-weight:bold;padding:9px 16px;cursor:pointer;border-radius:3px;letter-spacing:1px;}
+.action-btn:hover{opacity:0.85;}
+.action-btn.sec{background:var(--bg3);color:var(--accent);border:1px solid var(--accent);margin-left:8px;}
+.result-box{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:14px;margin-top:14px;font-size:12px;line-height:1.7;color:var(--text);white-space:pre-wrap;min-height:60px;display:none;}
+.warn-box{background:#2d0a0a;border:1px solid var(--red);border-radius:4px;padding:10px;margin-top:10px;font-size:11px;color:#f87171;line-height:1.6;display:none;}
+.risk-meter{margin-top:14px;display:none;}
+.risk-label{font-size:11px;color:var(--muted);margin-bottom:5px;}
+.risk-bar-wrap{background:var(--bg3);border-radius:3px;height:7px;overflow:hidden;}
+.risk-bar{height:100%;border-radius:3px;transition:width 0.5s;background:var(--green);}
+.quick-checks{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+.check-btn{font-size:11px;padding:5px 10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);cursor:pointer;border-radius:3px;font-family:var(--font);}
+.check-btn:hover{border-color:var(--accent);color:var(--accent);}
+.glossary-search{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:13px;padding:9px 12px;outline:none;border-radius:3px;margin-bottom:14px;}
+.glossary-search:focus{border-color:var(--accent);}
+.term-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:11px 13px;margin-bottom:8px;cursor:pointer;}
+.term-card:hover{border-color:var(--accent);}
+.term-name{font-size:13px;font-weight:bold;color:var(--accent);margin-bottom:3px;}
+.term-def{font-size:12px;color:var(--text);line-height:1.6;}
+.term-ex{font-size:11px;color:var(--muted);margin-top:5px;font-style:italic;}
+.strategy-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:13px;margin-bottom:12px;}
+.strategy-name{font-size:13px;font-weight:bold;color:var(--accent);margin-bottom:5px;}
+.strategy-desc{font-size:12px;color:var(--text);line-height:1.6;margin-bottom:8px;}
+.stags{display:flex;gap:5px;flex-wrap:wrap;}
+.stag{font-size:10px;padding:2px 7px;border-radius:2px;}
+.stag-easy{background:#052e1a;color:var(--green);}.stag-med{background:#1a1500;color:var(--amber);}.stag-risk{background:#0f1f30;color:var(--accent2);}
+.build-btn{margin-top:10px;font-size:11px;padding:5px 11px;border:1px solid var(--accent);background:none;color:var(--accent);cursor:pointer;border-radius:3px;font-family:var(--font);}
+.build-btn:hover{background:var(--accent);color:#000;}
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 160px);}
+.chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;}
+.chat-msg{font-size:13px;line-height:1.65;padding:10px 13px;border-radius:4px;max-width:92%;}
+.chat-msg.system{background:#052e1a;color:var(--green);border-left:2px solid var(--green);max-width:100%;font-size:12px;}
+.chat-msg.user{background:#0f1f30;color:var(--text);border-left:2px solid var(--accent2);align-self:flex-end;}
+.chat-msg.assistant{background:var(--bg2);color:var(--text);border-left:2px solid var(--muted);}
+.chat-msg.loading{color:var(--muted);font-style:italic;}
+.chat-bottom{border-top:1px solid var(--border);background:var(--bg2);}
+.quick-qs{display:flex;flex-wrap:wrap;gap:5px;padding:8px 12px;border-bottom:1px solid var(--border);}
+.qq{font-size:10px;padding:4px 8px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);cursor:pointer;border-radius:3px;font-family:var(--font);}
+.qq:hover{border-color:var(--accent);color:var(--accent);}
+.chat-input-row{display:flex;gap:8px;padding:10px 12px;}
+.chat-input{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:12px;padding:8px 12px;outline:none;border-radius:3px;}
+.chat-input:focus{border-color:var(--accent);}
+.send-btn{background:var(--accent);color:#000;border:none;font-family:var(--font);font-size:11px;font-weight:bold;padding:8px 14px;cursor:pointer;border-radius:3px;}
+.api-setup{background:#1a1500;border:1px solid var(--amber);border-radius:4px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#fbbf24;line-height:1.7;}
+.api-setup a{color:var(--accent);}
+.api-input-row{display:flex;gap:8px;margin-top:8px;}
+.api-input{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:12px;padding:7px 10px;outline:none;border-radius:3px;}
+.api-input:focus{border-color:var(--accent);}
+.save-btn{background:var(--bg3);color:var(--accent);border:1px solid var(--accent);font-family:var(--font);font-size:11px;padding:7px 12px;cursor:pointer;border-radius:3px;}
+</style>
+</head>
+<body>
+<div class="terminal">
+  <div class="topbar">
+    <div class="logo">▶ MY MARKET MENTOR</div>
+    <div class="topbar-right">
+      <span class="paper-badge">PAPER TRADING MODE</span>
+      <span><span class="live-dot"></span>LIVE</span>
+      <span id="clock" style="font-size:11px;color:var(--muted)">--:--</span>
+      <span id="mkt-status" style="color:var(--green);font-size:11px">--</span>
+    </div>
+  </div>
+
+  <div class="market-bar">
+    <div class="mb-item"><span class="mb-sym">SPY</span><span class="mb-val" id="b-spy">--</span><span id="b-spy-c" class="neu">--</span></div>
+    <div class="mb-item"><span class="mb-sym">QQQ</span><span class="mb-val" id="b-qqq">--</span><span id="b-qqq-c" class="neu">--</span></div>
+    <div class="mb-item"><span class="mb-sym">VIX</span><span class="mb-val" id="b-vix">--</span><span id="b-vix-c" class="neu">--</span></div>
+    <div class="mb-item"><span class="mb-sym">BTC</span><span class="mb-val" id="b-btc">--</span><span id="b-btc-c" class="neu">--</span></div>
+    <div class="mb-item"><span class="mb-sym">GOLD</span><span class="mb-val" id="b-gold">--</span><span id="b-gold-c" class="neu">--</span></div>
+    <div class="mb-item"><span class="mb-sym">OIL</span><span class="mb-val" id="b-oil">--</span><span id="b-oil-c" class="neu">--</span></div>
+    <div class="mb-item" id="mkt-bar-status"></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showPage('dashboard',this)">▸ DASHBOARD</button>
+    <button class="tab" onclick="showPage('analyzer',this)">▸ ANALYZER</button>
+    <button class="tab" onclick="showPage('glossary',this)">▸ GLOSSARY</button>
+    <button class="tab" onclick="showPage('strategy',this)">▸ STRATEGIES</button>
+    <button class="tab" onclick="showPage('mentor',this)">▸ ASK MENTOR</button>
+    <button class="tab" onclick="showPage('settings',this)">▸ SETTINGS</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="dash-grid">
+      <div class="sidebar">
+        <div class="sidebar-hdr">▸ STOCKS</div>
+        <div id="stockList"></div>
+        <div class="sidebar-hdr">▸ CRYPTO</div>
+        <div id="cryptoList"></div>
+        <div class="sidebar-hdr">▸ COMMODITIES</div>
+        <div id="commList"></div>
+      </div>
+      <div class="main-dash">
+        <div class="stat-row">
+          <div class="stat-card"><div class="stat-label">PRICE</div><div class="stat-val" id="d-price" style="color:var(--accent)">--</div><div class="stat-sub" id="d-name">Select a ticker</div></div>
+          <div class="stat-card"><div class="stat-label">TODAY'S CHANGE</div><div class="stat-val" id="d-chg">--</div><div class="stat-sub" id="d-pct">--</div></div>
+          <div class="stat-card"><div class="stat-label">DAY HIGH / LOW</div><div class="stat-val" id="d-hl" style="font-size:13px">-- / --</div><div class="stat-sub" id="d-vol">Vol: --</div></div>
+          <div class="stat-card"><div class="stat-label">FEAR INDEX (VIX)</div><div class="stat-val" id="d-vix" style="font-size:14px;color:var(--amber)">--</div><div class="stat-sub" id="d-vix-txt">Loading...</div></div>
+        </div>
+        <div class="chart-box">
+          <div class="chart-hdr">
+            <div class="chart-title" id="d-chart-title">SELECT A TICKER TO VIEW CHART</div>
+            <div class="ctabs">
+              <button class="ctab active" onclick="setChartRange('1D',this)">1D</button>
+              <button class="ctab" onclick="setChartRange('1W',this)">1W</button>
+              <button class="ctab" onclick="setChartRange('1M',this)">1M</button>
+              <button class="ctab" onclick="setChartRange('3M',this)">3M</button>
+            </div>
+          </div>
+          <canvas id="dashChart" height="120"></canvas>
+        </div>
+        <div class="news-panel">
+          <div class="panel-hdr">▸ MARKET NEWS — click any story to ask your mentor</div>
+          <div id="newsList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANALYZER -->
+  <div class="page" id="page-analyzer">
+    <div class="wrap">
+      <div class="section-title">▸ SHOULD I BUY THIS? — STOCK ANALYZER</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6;">Type any ticker or question. Your mentor gives you a plain-English breakdown including risks and red flags.</div>
+      <label class="input-label">TICKER OR QUESTION</label>
+      <input class="term-input" id="analyzeInput" placeholder="e.g. AAPL  or  Is NVDA a good buy right now?" />
+      <button class="action-btn" onclick="runAnalysis()">ANALYZE ▶</button>
+      <button class="action-btn sec" onclick="runRiskCheck()">RISK CHECK ▸</button>
+      <div class="quick-checks">
+        <button class="check-btn" onclick="quickAnalyze('AAPL')">AAPL</button>
+        <button class="check-btn" onclick="quickAnalyze('NVDA')">NVDA</button>
+        <button class="check-btn" onclick="quickAnalyze('TSLA')">TSLA</button>
+        <button class="check-btn" onclick="quickAnalyze('BTC-USD')">BTC</button>
+        <button class="check-btn" onclick="quickAnalyze('ETH-USD')">ETH</button>
+        <button class="check-btn" onclick="quickAnalyze('GC=F')">GOLD</button>
+        <button class="check-btn" onclick="quickAnalyze('SPY')">SPY</button>
+      </div>
+      <div class="risk-meter" id="riskMeter">
+        <div class="risk-label">ESTIMATED RISK LEVEL</div>
+        <div class="risk-bar-wrap"><div class="risk-bar" id="riskBar" style="width:0%"></div></div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px" id="riskLabel">--</div>
+      </div>
+      <div class="warn-box" id="warnBox"></div>
+      <div class="result-box" id="analyzeResult"></div>
+    </div>
+  </div>
+
+  <!-- GLOSSARY -->
+  <div class="page" id="page-glossary">
+    <div class="wrap">
+      <div class="section-title">▸ TRADING GLOSSARY — plain English, no jargon</div>
+      <input class="glossary-search" id="glossSearch" placeholder="Search a term... e.g. RSI, short selling, candlestick" oninput="filterGloss()" />
+      <div id="glossList"></div>
+    </div>
+  </div>
+
+  <!-- STRATEGY -->
+  <div class="page" id="page-strategy">
+    <div class="wrap">
+      <div class="section-title">▸ BEGINNER TRADING STRATEGIES</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6;">Try each one on your paper account and see which fits your style before using real money.</div>
+      <div id="strategyList"></div>
+    </div>
+  </div>
+
+  <!-- MENTOR CHAT -->
+  <div class="page" id="page-mentor">
+    <div class="chat-wrap">
+      <div class="chat-msgs" id="chatMsgs">
+        <div class="chat-msg system">MENTOR ONLINE — Hey! I'm your personal trading mentor. Ask me anything — no question is too basic. I'll always explain the "why" behind the market. You're on day 3 of paper trading. That's the perfect time to build your knowledge foundation.</div>
+      </div>
+      <div class="chat-bottom">
+        <div class="quick-qs">
+          <button class="qq" onclick="mentorAsk('What does a red day vs green day mean for a beginner?')">Red vs green day</button>
+          <button class="qq" onclick="mentorAsk('What is a stop loss and why do I need one?')">Stop loss basics</button>
+          <button class="qq" onclick="mentorAsk('What is market cap and why does it matter?')">Market cap</button>
+          <button class="qq" onclick="mentorAsk('How do I know when to sell a stock?')">When to sell</button>
+          <button class="qq" onclick="mentorAsk('What are the biggest mistakes new day traders make?')">Common mistakes</button>
+          <button class="qq" onclick="mentorAsk('Give me a simple daily routine for a beginner paper trader.')">Daily routine</button>
+        </div>
+        <div class="chat-input-row">
+          <input class="chat-input" id="chatInput" placeholder="Ask your mentor anything..." onkeydown="if(event.key==='Enter')sendChat()" />
+          <button class="send-btn" onclick="sendChat()">SEND</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page" id="page-settings">
+    <div class="wrap">
+      <div class="section-title">▸ SETTINGS — API KEY SETUP</div>
+      <div class="api-setup">
+        <strong>To enable the AI Mentor and Analyzer, you need a free Anthropic API key.</strong><br><br>
+        1. Go to <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a><br>
+        2. Sign up for a free account<br>
+        3. Click "API Keys" → "Create Key"<br>
+        4. Copy the key and paste it below<br><br>
+        Your key is saved only in your browser — never sent anywhere except Anthropic.
+      </div>
+      <label class="input-label">YOUR ANTHROPIC API KEY</label>
+      <div class="api-input-row">
+        <input class="api-input" id="apiKeyInput" type="password" placeholder="sk-ant-..." />
+        <button class="save-btn" onclick="saveKey()">SAVE KEY</button>
+      </div>
+      <div id="keyStatus" style="font-size:11px;margin-top:8px;color:var(--muted)"></div>
+      <div style="margin-top:24px;font-size:11px;color:var(--muted);line-height:1.8;">
+        <div style="color:var(--accent);margin-bottom:6px;letter-spacing:1px;">▸ WHAT WORKS WITHOUT A KEY</div>
+        Live stock prices, crypto prices, commodities — all free, no key needed.<br>
+        Charts, watchlist, market bar — all free.<br>
+        Glossary and strategies — all free.<br><br>
+        <div style="color:var(--accent);margin-bottom:6px;letter-spacing:1px;">▸ WHAT NEEDS THE KEY</div>
+        AI Mentor chat, Stock Analyzer, Risk Check — these use Claude AI.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STOCKS=[{sym:'AAPL',name:'Apple'},{sym:'NVDA',name:'Nvidia'},{sym:'MSFT',name:'Microsoft'},{sym:'TSLA',name:'Tesla'},{sym:'AMZN',name:'Amazon'},{sym:'META',name:'Meta'},{sym:'GOOGL',name:'Alphabet'},{sym:'JPM',name:'JPMorgan'}];
+const CRYPTOS=[{sym:'BTC-USD',name:'Bitcoin'},{sym:'ETH-USD',name:'Ethereum'},{sym:'SOL-USD',name:'Solana'},{sym:'XRP-USD',name:'XRP'}];
+const COMMS=[{sym:'GC=F',name:'Gold'},{sym:'CL=F',name:'WTI Oil'},{sym:'SI=F',name:'Silver'}];
+let priceCache={},selectedSym=null,chartRange='1D',dashChartObj=null,chatHistory=[];
+
+function getKey(){return localStorage.getItem('anthropic_key')||'';}
+function saveKey(){const k=document.getElementById('apiKeyInput').value.trim();localStorage.setItem('anthropic_key',k);document.getElementById('keyStatus').textContent=k?'Key saved! AI features are now active.':'Key cleared.';document.getElementById('keyStatus').style.color=k?'var(--green)':'var(--muted)';}
+window.onload=()=>{const k=getKey();if(k)document.getElementById('apiKeyInput').value=k;};
+
+function fmt(n){if(n===undefined||n===null||isNaN(n))return'--';if(Math.abs(n)>1000)return'$'+n.toLocaleString('en-US',{maximumFractionDigits:2});return'$'+parseFloat(n).toFixed(2);}
+function fmtC(c,p){if(isNaN(c)||isNaN(p))return{t:'--',cls:'neu'};const s=c>=0?'+':'';return{t:`${s}${c.toFixed(2)} (${s}${p.toFixed(2)}%)`,cls:c>=0?'up':'dn'};}
+function volFmt(v){if(!v)return'--';if(v>1e9)return(v/1e9).toFixed(1)+'B';if(v>1e6)return(v/1e6).toFixed(1)+'M';return(v/1e3).toFixed(0)+'K';}
+
+async function fetchQ(sym){
+  try{
+    const r=await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&range=5d`);
+    if(!r.ok)return null;
+    const d=await r.json();
+    const m=d.result?.[0]?.meta;if(!m)return null;
+    const price=m.regularMarketPrice,prev=m.chartPreviousClose||m.previousClose;
+    return{price,prev,high:m.regularMarketDayHigh,low:m.regularMarketDayLow,vol:m.regularMarketVolume,chg:price-prev,pct:((price-prev)/prev)*100,sym};
+  }catch{return null;}
+}
+
+async function fetchHist(sym,range){
+  const rm={'1D':'1d','1W':'5d','1M':'1mo','3M':'3mo'};
+  const im={'1D':'5m','1W':'1h','1M':'1d','3M':'1d'};
+  try{
+    const r=await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=${im[range]}&range=${rm[range]}`);
+    const d=await r.json();
+    const res=d.result?.[0];if(!res)return null;
+    const ts=res.timestamp,cs=res.indicators?.quote?.[0]?.close;
+    if(!ts||!cs)return null;
+    return ts.map((t,i)=>({t:t*1000,v:cs[i]})).filter(x=>x.v!=null);
+  }catch{return null;}
+}
+
+function renderLists(){
+  const mkRow=(item,onclick)=>{
+    const q=priceCache[item.sym];
+    const chg=q?fmtC(q.chg,q.pct):{t:'--',cls:'neu'};
+    const d=document.createElement('div');
+    d.className='ticker-row'+(selectedSym===item.sym?' active':'');
+    d.onclick=onclick;
+    d.innerHTML=`<div><div class="t-sym">${item.sym.replace('-USD','').replace('=F','')}</div><div class="t-name">${item.name}</div></div><div><div class="t-price ${chg.cls}">${q?fmt(q.price):'--'}</div><div class="t-chg ${chg.cls}">${chg.t}</div></div>`;
+    return d;
+  };
+  ['stockList','cryptoList','commList'].forEach(id=>document.getElementById(id).innerHTML='');
+  STOCKS.forEach(s=>document.getElementById('stockList').appendChild(mkRow(s,()=>selectTick(s.sym,s.name))));
+  CRYPTOS.forEach(s=>document.getElementById('cryptoList').appendChild(mkRow(s,()=>selectTick(s.sym,s.name))));
+  COMMS.forEach(s=>document.getElementById('commList').appendChild(mkRow(s,()=>selectTick(s.sym,s.name))));
+}
+
+async function selectTick(sym,name){
+  selectedSym=sym;
+  const q=priceCache[sym];
+  if(q){
+    document.getElementById('d-price').textContent=fmt(q.price);
+    document.getElementById('d-name').textContent=name+' ('+sym.replace('-USD','').replace('=F','')+')';
+    const chg=fmtC(q.chg,q.pct);
+    document.getElementById('d-chg').textContent=(q.chg>=0?'+':'')+q.chg.toFixed(2);
+    document.getElementById('d-chg').className='stat-val '+chg.cls;
+    document.getElementById('d-pct').textContent=(q.pct>=0?'+':'')+q.pct.toFixed(2)+'% today';
+    document.getElementById('d-hl').textContent=fmt(q.high)+' / '+fmt(q.low);
+    document.getElementById('d-vol').textContent='Vol: '+volFmt(q.vol);
+  }
+  document.getElementById('d-chart-title').textContent=sym.replace('-USD','').replace('=F','')+' — PRICE CHART';
+  renderLists();
+  await loadDashChart(sym);
+}
+
+async function loadDashChart(sym){
+  const data=await fetchHist(sym,chartRange);
+  if(!data||!data.length)return;
+  const labels=data.map(d=>{const dt=new Date(d.t);return chartRange==='1D'?dt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):dt.toLocaleDateString([],{month:'short',day:'numeric'});});
+  const vals=data.map(d=>d.v);
+  const isUp=vals[vals.length-1]>=vals[0];
+  const color=isUp?'#10b981':'#f05252';
+  const ctx=document.getElementById('dashChart').getContext('2d');
+  if(dashChartObj)dashChartObj.destroy();
+  dashChartObj=new Chart(ctx,{type:'line',data:{labels,datasets:[{data:vals,borderColor:color,borderWidth:1.5,pointRadius:0,fill:true,backgroundColor:()=>{const g=ctx.createLinearGradient(0,0,0,120);g.addColorStop(0,isUp?'rgba(16,185,129,0.15)':'rgba(240,82,82,0.15)');g.addColorStop(1,'rgba(0,0,0,0)');return g;},tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,backgroundColor:'#1e2430',titleColor:'#64748b',bodyColor:'#e2e8f0',callbacks:{label:c=>'$'+c.raw.toFixed(2)}}},scales:{x:{display:false},y:{display:true,position:'right',grid:{color:'#1e2d3d'},ticks:{color:'#64748b',font:{size:10},callback:v=>'$'+v.toFixed(0)}}},interaction:{mode:'nearest',axis:'x',intersect:false}}});
+}
+
+function setChartRange(r,el){chartRange=r;document.querySelectorAll('.ctab').forEach(t=>t.classList.remove('active'));el.classList.add('active');if(selectedSym)loadDashChart(selectedSym);}
+
+function updateBar(prices){
+  const s=(id,sym)=>{const q=prices[sym];if(!q)return;document.getElementById('b-'+id).textContent=fmt(q.price);const c=fmtC(q.chg,q.pct);const el=document.getElementById('b-'+id+'-c');el.textContent=c.t;el.className=c.cls;};
+  s('spy','SPY');s('qqq','QQQ');s('vix','^VIX');s('btc','BTC-USD');s('gold','GC=F');s('oil','CL=F');
+  const vix=prices['^VIX'];
+  if(vix){
+    const v=vix.price;
+    document.getElementById('d-vix').textContent=v.toFixed(1);
+    let mood,col,txt;
+    if(v<15){mood='CALM';col='var(--green)';txt='Low fear — market is relaxed';}
+    else if(v<25){mood='NORMAL';col='var(--amber)';txt='Moderate uncertainty';}
+    else if(v<35){mood='FEARFUL';col='var(--red)';txt='High fear — be cautious';}
+    else{mood='PANIC';col='var(--red)';txt='Extreme fear — stay on sidelines';}
+    document.getElementById('d-vix').style.color=col;
+    document.getElementById('d-vix-txt').textContent=txt;
+  }
+}
+
+async function loadAllPrices(){
+  const all=[...STOCKS,...CRYPTOS,...COMMS].map(s=>s.sym);
+  all.push('SPY','QQQ','^VIX');
+  await Promise.allSettled(all.map(sym=>fetchQ(sym).then(q=>{if(q)priceCache[sym]=q;})));
+  renderLists();updateBar(priceCache);
+}
+
+const NEWS=[
+  {tag:'BULL',cls:'tag-bull',hl:'Fed signals pause — rate cuts expected Q3 2026 as inflation cools to 2.4%',meta:'Reuters · 2h ago'},
+  {tag:'BEAR',cls:'tag-bear',hl:'China tariffs escalate: new 15% levy on semiconductor exports hits tech sector',meta:'WSJ · 3h ago'},
+  {tag:'BULL',cls:'tag-bull',hl:'NVDA crushes earnings — data center revenue up 40% on AI demand surge',meta:'Bloomberg · 4h ago'},
+  {tag:'NEUT',cls:'tag-neut',hl:'Bitcoin holds $85K range — analysts split on next move ahead of halving',meta:'CoinDesk · 5h ago'},
+  {tag:'BEAR',cls:'tag-bear',hl:'Oil slides on weak demand outlook — OPEC+ signals production increase',meta:'Reuters · 6h ago'},
+  {tag:'BULL',cls:'tag-bull',hl:'Gold hits 2026 high as dollar weakens on mixed jobs data',meta:'FT · 7h ago'},
+  {tag:'NEUT',cls:'tag-neut',hl:'S&P 500 Q1 earnings: 72% of reporters beat estimates so far',meta:'FactSet · 8h ago'},
+];
+function renderNews(){
+  const el=document.getElementById('newsList');
+  NEWS.forEach(n=>{
+    const d=document.createElement('div');d.className='news-item';
+    d.innerHTML=`<span class="news-tag ${n.cls}">${n.tag}</span><div class="news-hl">${n.hl}</div><div class="news-meta">${n.meta} — <span style="color:var(--accent)">Ask mentor ▸</span></div>`;
+    d.onclick=()=>{showPage('mentor',document.querySelectorAll('.tab')[4]);mentorAsk('Explain this news in simple terms and how it might affect my paper trades: '+n.hl);};
+    el.appendChild(d);
+  });
+}
+
+const GLOSSARY=[
+  {t:'Bull Market',d:'When the market is going up overall — prices are rising and people feel optimistic.',ex:'Example: 2020-2021 was a huge bull market where almost everything went up.'},
+  {t:'Bear Market',d:'When the market drops 20%+ from a recent high. People are scared and selling.',ex:'Example: Early 2022 was a bear market — tech stocks dropped 40-70%.'},
+  {t:'VIX (Fear Index)',d:'Measures how scared or calm the market is. Below 15 = calm. Above 30 = panic.',ex:'Example: VIX spiked to 80 in 2020 when COVID hit — extreme panic.'},
+  {t:'Market Cap',d:'Total value of a company = share price × number of shares. Bigger = more stable.',ex:'Example: Apple\'s market cap is over $3 trillion — one of the largest ever.'},
+  {t:'Volume',d:'How many shares were traded today. High volume = strong move. Low volume = weak move.',ex:'Example: A stock spiking 10% on low volume is less trustworthy than on high volume.'},
+  {t:'Support Level',d:'A price floor where a stock tends to stop falling and bounce back up.',ex:'Example: If AAPL keeps bouncing at $170, that\'s a support level.'},
+  {t:'Resistance Level',d:'A price ceiling where a stock tends to stop rising and pull back.',ex:'Example: If NVDA hits $900 three times and falls, $900 is resistance.'},
+  {t:'Stop Loss',d:'An automatic sell order protecting you if a stock drops too far. Essential for risk management.',ex:'Example: Buy AAPL at $200, set stop loss at $190 — you can\'t lose more than $10/share.'},
+  {t:'Candlestick',d:'A bar on a chart showing open, close, high, and low for a time period. Green = went up, Red = went down.',ex:'Example: A long green candle means buyers were in control all day.'},
+  {t:'RSI',d:'A 0-100 score. Above 70 = overbought (might fall). Below 30 = oversold (might bounce).',ex:'Example: If TSLA RSI hits 80, it may be due for a pullback.'},
+  {t:'Moving Average',d:'The average price over X days. Used to spot trends. Price above MA = uptrend.',ex:'Example: If AAPL is above its 50-day moving average, it\'s in a short-term uptrend.'},
+  {t:'P/E Ratio',d:'Price-to-Earnings. How much you pay for $1 of company profit. Lower = cheaper.',ex:'Example: A P/E of 15 is typical. P/E of 100 means you\'re paying a premium for growth.'},
+  {t:'Short Selling',d:'Betting that a stock will go DOWN. You borrow shares, sell them, hope to buy cheaper.',ex:'Example: Short sellers made billions betting against housing in 2008.'},
+  {t:'ETF',d:'A basket of many stocks that trades like one stock. Great for beginners — instant diversification.',ex:'Example: SPY tracks the 500 biggest US companies. US business does well = SPY goes up.'},
+  {t:'FOMO',d:'Fear Of Missing Out — buying a stock just because it\'s going up fast. A huge beginner mistake.',ex:'Example: Buying Bitcoin at $69K in 2021 because everyone was talking about it — it crashed to $16K.'},
+  {t:'Day Trading',d:'Buying and selling stocks within the same day. Profits from small price moves. Very high risk.',ex:'Example: Buy 100 shares at $100, sell at $102 — $200 profit (minus fees and taxes).'},
+  {t:'Spread',d:'The gap between what buyers pay (bid) and sellers accept (ask). Small spread = liquid stock.',ex:'Example: AAPL might have a $0.01 spread. A penny stock might have a $0.50 spread.'},
+];
+function renderGloss(filter=''){
+  const el=document.getElementById('glossList');el.innerHTML='';
+  GLOSSARY.filter(g=>!filter||g.t.toLowerCase().includes(filter.toLowerCase())||g.d.toLowerCase().includes(filter.toLowerCase())).forEach(g=>{
+    const d=document.createElement('div');d.className='term-card';
+    d.innerHTML=`<div class="term-name">${g.t}</div><div class="term-def">${g.d}</div><div class="term-ex">${g.ex}</div>`;
+    d.onclick=()=>{showPage('mentor',document.querySelectorAll('.tab')[4]);mentorAsk('Explain "'+g.t+'" in more detail with a real example I can use while paper trading.');};
+    el.appendChild(d);
+  });
+}
+function filterGloss(){renderGloss(document.getElementById('glossSearch').value);}
+
+const STRATEGIES=[
+  {name:'Trend Following',desc:'Go with the flow. Buy stocks already going up, sell ones going down. Simple rule: if the price is above the 50-day moving average, you\'re allowed to buy. If it breaks below, sell.',tags:[{t:'BEGINNER FRIENDLY',c:'stag-easy'},{t:'LOW RISK',c:'stag-risk'}],prompt:'Explain trend following strategy step by step for a paper trader. Give me a simple checklist.'},
+  {name:'Buy the Dip',desc:'Wait for a good stock to have a bad day and buy it at a discount. Key: make sure the dip is temporary (bad market day) not permanent (company in trouble).',tags:[{t:'BEGINNER FRIENDLY',c:'stag-easy'},{t:'MEDIUM RISK',c:'stag-risk'}],prompt:'Explain the buy the dip strategy. How do I tell if a dip is a buying opportunity vs a warning sign?'},
+  {name:'Momentum Trading',desc:'Buy stocks moving fast on high volume. What moves fast keeps moving — but requires quick decisions and tight stop losses.',tags:[{t:'INTERMEDIATE',c:'stag-med'},{t:'HIGH RISK',c:'stag-risk'}],prompt:'Explain momentum trading for a beginner. What stocks should I look at and how do I set stop losses?'},
+  {name:'Support & Resistance',desc:'Find price levels where a stock repeatedly bounces (support) or stalls (resistance). Buy near support, sell near resistance.',tags:[{t:'INTERMEDIATE',c:'stag-med'},{t:'MEDIUM RISK',c:'stag-risk'}],prompt:'How do I find support and resistance levels? Give me a practical example using a popular stock.'},
+  {name:'Paper Trading Journal',desc:'Write down every paper trade: why you bought, your target price, your stop loss, and what actually happened. Review weekly. The most underrated beginner strategy.',tags:[{t:'ESSENTIAL',c:'stag-easy'},{t:'NO RISK',c:'stag-risk'}],prompt:'How should I structure my paper trading journal? What should I write down for every trade?'},
+];
+function renderStrategies(){
+  const el=document.getElementById('strategyList');
+  STRATEGIES.forEach(s=>{
+    const d=document.createElement('div');d.className='strategy-card';
+    d.innerHTML=`<div class="strategy-name">${s.name}</div><div class="strategy-desc">${s.desc}</div><div class="stags">${s.tags.map(t=>`<span class="stag ${t.c}">${t.t}</span>`).join('')}</div><button class="build-btn" onclick="showPage('mentor',document.querySelectorAll('.tab')[4]);mentorAsk('${s.prompt.replace(/'/g,"\\'")}')" >Ask mentor to teach me this ▸</button>`;
+    el.appendChild(d);
+  });
+}
+
+function showPage(id,tabEl){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(tabEl)tabEl.classList.add('active');
+}
+
+async function callClaude(userMsg,systemMsg){
+  const key=getKey();
+  if(!key){return 'No API key found. Go to the SETTINGS tab and add your free Anthropic API key to enable AI features.';}
+  const sys=systemMsg||'You are a patient, encouraging trading mentor for someone on day 3 of paper trading. Always explain in plain English with real analogies. Mention risk management. Never give direct buy/sell advice — frame everything as education. Keep responses under 200 words unless asked for more. Warm, mentor-like tone.';
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:[{role:'user',content:userMsg}]})});
+  const d=await r.json();
+  if(d.error)return'Error: '+d.error.message;
+  return d.content?.[0]?.text||'No response.';
+}
+
+async function runAnalysis(){
+  const input=document.getElementById('analyzeInput').value.trim();if(!input)return;
+  const rb=document.getElementById('analyzeResult');rb.style.display='block';rb.textContent='▶ Analyzing... please wait';
+  document.getElementById('warnBox').style.display='none';
+  document.getElementById('riskMeter').style.display='block';
+  const prompt=`A beginner paper trader wants to know about: "${input}". Give them: 1) A plain-English explanation 2) What's happening with it currently (March 2026) 3) Key risks to watch out for 4) A verdict: WATCH IT, RISKY RIGHT NOW, or AVOID FOR NOW. Educational only, max 180 words.`;
+  const result=await callClaude(prompt);
+  rb.textContent=result;
+  const isRisky=result.toLowerCase().includes('risky')||result.toLowerCase().includes('avoid')||result.toLowerCase().includes('volatile');
+  const isCaution=result.toLowerCase().includes('watch')||result.toLowerCase().includes('careful');
+  let pct=40,col='var(--green)',lbl='Moderate learning opportunity';
+  if(isRisky){pct=80;col='var(--red)';lbl='High risk — study more before paper trading this';}
+  else if(isCaution){pct=55;col='var(--amber)';lbl='Moderate risk — good for careful paper trading';}
+  document.getElementById('riskBar').style.width=pct+'%';
+  document.getElementById('riskBar').style.background=col;
+  document.getElementById('riskLabel').textContent=lbl;
+  if(isRisky){const wb=document.getElementById('warnBox');wb.style.display='block';wb.textContent='MENTOR NOTE: This has elevated risk for beginners. In paper trading that\'s fine — but don\'t simulate more than 5% of your portfolio in it until you understand it better.';}
+}
+function quickAnalyze(sym){document.getElementById('analyzeInput').value=sym;runAnalysis();}
+async function runRiskCheck(){
+  const input=document.getElementById('analyzeInput').value.trim()||'general day trading';
+  const rb=document.getElementById('analyzeResult');rb.style.display='block';rb.textContent='▶ Running risk check...';
+  const result=await callClaude(`A beginner paper trader wants a risk check on: "${input}". List 3 specific risks in plain English they should know before trading this. Be honest but encouraging. Max 120 words.`);
+  rb.textContent=result;
+}
+
+async function sendChat(){
+  const input=document.getElementById('chatInput');
+  const msg=input.value.trim();if(!msg)return;
+  input.value='';
+  addChatMsg('user',msg);
+  chatHistory.push({role:'user',content:msg});
+  const loadEl=addChatMsg('loading','▶ Mentor is thinking...');
+  const sys='You are a patient, warm trading mentor. The student is on day 3 of paper trading — a complete beginner. Always explain in plain English with real-world analogies. Always mention risk management. Never give direct buy/sell advice. Be encouraging. Keep responses under 220 words unless asked for more.';
+  try{
+    const key=getKey();
+    if(!key){loadEl.textContent='No API key found. Go to SETTINGS tab to add your free Anthropic API key.';loadEl.className='chat-msg assistant';return;}
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:chatHistory.slice(-10)})});
+    const d=await r.json();
+    const reply=d.error?'Error: '+d.error.message:d.content?.[0]?.text||'Try again.';
+    loadEl.remove();
+    addChatMsg('assistant',reply);
+    chatHistory.push({role:'assistant',content:reply});
+  }catch(e){loadEl.textContent='Connection error. Check your internet and try again.';loadEl.className='chat-msg assistant';}
+}
+function addChatMsg(role,text){
+  const msgs=document.getElementById('chatMsgs');
+  const d=document.createElement('div');d.className='chat-msg '+role;d.textContent=text;
+  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;return d;
+}
+function mentorAsk(q){document.getElementById('chatInput').value=q;sendChat();}
+
+function updateClock(){
+  const est=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
+  document.getElementById('clock').textContent=est.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})+' EST';
+  const h=est.getHours(),m=est.getMinutes(),day=est.getDay();
+  const open=day>0&&day<6&&(h>9||(h===9&&m>=30))&&h<16;
+  document.getElementById('mkt-status').textContent=open?'OPEN':'CLOSED';
+  document.getElementById('mkt-status').style.color=open?'var(--green)':'var(--red)';
+  document.getElementById('mkt-bar-status').innerHTML=`<span style="color:${open?'var(--green)':'var(--red)'}">${open?'▸ NYSE OPEN':'▸ NYSE CLOSED'}</span>`;
+}
+
+renderNews();renderGloss();renderStrategies();
+updateClock();setInterval(updateClock,30000);
+loadAllPrices();setInterval(loadAllPrices,30000);
+</script>
+</body>
+</html>
