@@ -506,21 +506,32 @@ body{background:var(--bg);font-family:var(--font);color:var(--text);margin:0;min
       <div id="anthropicStatus" class="key-status"></div>
 
       <div class="api-setup">
-        <strong>2. Financial Modeling Prep Key</strong> — powers live stock prices and charts.<br>
-        Get it free at <a href="https://financialmodelingprep.com" target="_blank">financialmodelingprep.com</a> → Sign up → Dashboard shows your key
+        <strong>2. Twelve Data Key</strong> — powers live stock prices and charts.<br>
+        Get it free at <a href="https://twelvedata.com" target="_blank">twelvedata.com</a> → Start now → Dashboard shows your key
       </div>
-      <label class="input-label">FMP API KEY</label>
+      <label class="input-label">TWELVE DATA API KEY</label>
       <div class="api-input-row">
-        <input class="api-input" id="fmpKeyInput" type="password" placeholder="your FMP key..."/>
-        <button class="save-btn" onclick="saveFmpKey()">SAVE</button>
+        <input class="api-input" id="twelveKeyInput" type="password" placeholder="your Twelve Data key..."/>
+        <button class="save-btn" onclick="saveTwelveKey()">SAVE</button>
       </div>
-      <div id="fmpStatus" class="key-status"></div>
+      <div id="twelveStatus" class="key-status"></div>
 
-      <div style="font-size:11px;color:var(--muted);line-height:1.8;margin-top:8px;">
-        <div style="color:var(--accent);margin-bottom:4px;letter-spacing:1px;">▸ WHAT EACH KEY DOES</div>
-        Anthropic key → AI Mentor chat, Stock Analyzer, Daily Briefing<br>
-        FMP key → Live prices, charts, market bar, watchlist<br>
-        Crypto prices → Coinbase (free, no key needed, always works)
+      <div class="api-setup">
+        <strong>3. CoinGecko Key</strong> — powers live crypto prices and charts.<br>
+        Get it free at <a href="https://coingecko.com/en/api" target="_blank">coingecko.com/en/api</a> → Get API Key → Demo plan
+      </div>
+      <label class="input-label">COINGECKO API KEY</label>
+      <div class="api-input-row">
+        <input class="api-input" id="geckoKeyInput" type="password" placeholder="your CoinGecko key..."/>
+        <button class="save-btn" onclick="saveCoinGeckoKey()">SAVE</button>
+      </div>
+      <div id="geckoStatus" class="key-status"></div>
+
+      <div style="font-size:12px;color:var(--muted);line-height:1.9;margin-top:12px;">
+        <div style="color:var(--text2);margin-bottom:6px;letter-spacing:1px;">▸ WHAT EACH KEY DOES</div>
+        Anthropic → AI Mentor chat, Stock Analyzer, Daily Briefing<br>
+        Twelve Data → Live stock prices, stock charts (all ranges)<br>
+        CoinGecko → Live crypto prices, crypto charts (all ranges)
       </div>
     </div>
   </div>
@@ -529,7 +540,9 @@ body{background:var(--bg);font-family:var(--font);color:var(--text);margin:0;min
 <script>
 // ── KEY MANAGEMENT ──────────────────────────────────────────
 function getAnthropicKey(){return localStorage.getItem('anthropic_key')||'';}
-function getFmpKey(){return localStorage.getItem('fmp_key')||'';}
+function getTwelveKey(){return localStorage.getItem('twelve_key')||'';}
+function getCoinGeckoKey(){return localStorage.getItem('coingecko_key')||'';}
+
 function saveAnthropicKey(){
   const k=document.getElementById('apiKeyInput').value.trim();
   localStorage.setItem('anthropic_key',k);
@@ -538,13 +551,21 @@ function saveAnthropicKey(){
   el.style.color=k?'var(--green)':'var(--muted)';
   if(k)loadBriefing();
 }
-function saveFmpKey(){
-  const k=document.getElementById('fmpKeyInput').value.trim();
-  localStorage.setItem('fmp_key',k);
-  const el=document.getElementById('fmpStatus');
-  el.textContent=k?'✓ FMP key saved — loading prices now...':'Key cleared.';
+function saveTwelveKey(){
+  const k=document.getElementById('twelveKeyInput').value.trim();
+  localStorage.setItem('twelve_key',k);
+  const el=document.getElementById('twelveStatus');
+  el.textContent=k?'✓ Twelve Data key saved — loading stock prices now...':'Key cleared.';
   el.style.color=k?'var(--green)':'var(--muted)';
-  if(k){loadAllPrices();}
+  if(k)loadAllPrices();
+}
+function saveCoinGeckoKey(){
+  const k=document.getElementById('geckoKeyInput').value.trim();
+  localStorage.setItem('coingecko_key',k);
+  const el=document.getElementById('geckoStatus');
+  el.textContent=k?'✓ CoinGecko key saved — loading crypto prices now...':'Key cleared.';
+  el.style.color=k?'var(--green)':'var(--muted)';
+  if(k)loadAllPrices();
 }
 
 // ── FORMATTING ───────────────────────────────────────────────
@@ -600,10 +621,15 @@ function addTicker(){
   saveWatchlist(list);
   input.value='';
   // fetch price for new ticker then re-render
-  fetchFmpQuote(sym).then(q=>{
+  const isCrypto=!!GECKO_IDS[sym];
+  if(isCrypto){
+    const results=await fetchGeckoPrices([sym]);
+    if(results[sym])priceCache[sym]=results[sym];
+  } else {
+    const q=await fetchTwelveQuote(sym);
     if(q)priceCache[sym]=q;
-    renderWatchlist();
-  });
+  }
+  renderWatchlist();
 }
 
 function removeTicker(sym,e){
@@ -647,62 +673,78 @@ function renderWatchlist(){
   });
 }
 
-// ── FMP PRICE FETCH ──────────────────────────────────────────
-async function fetchFmpQuote(sym){
-  const key=getFmpKey();if(!key)return null;
+// ── TWELVE DATA — STOCKS ─────────────────────────────────────
+async function fetchTwelveQuote(sym){
+  const key=getTwelveKey();if(!key)return null;
   try{
-    const r=await fetch(`https://financialmodelingprep.com/api/v3/quote/${sym}?apikey=${key}`);
+    const r=await fetch(`https://api.twelvedata.com/quote?symbol=${sym}&apikey=${key}`);
     if(!r.ok)return null;
     const d=await r.json();
-    if(!d||!d[0])return null;
-    const q=d[0];
-    return{price:q.price,prev:q.previousClose,high:q.dayHigh,low:q.dayLow,vol:q.volume,chg:q.change,pct:q.changesPercentage,sym};
+    if(d.status==='error'||!d.close)return null;
+    const price=parseFloat(d.close);
+    const prev=parseFloat(d.previous_close);
+    const chg=price-prev;
+    const pct=(chg/prev)*100;
+    return{price,prev,high:parseFloat(d.high),low:parseFloat(d.low),vol:parseInt(d.volume)||0,chg,pct,sym};
   }catch{return null;}
 }
 
-// ── COINBASE CRYPTO (no key needed) ─────────────────────────
-async function fetchCryptoPrice(sym){
+async function fetchTwelveHistory(sym,range){
+  const key=getTwelveKey();if(!key)return null;
+  const intervalMap={'1D':'5min','1W':'1h','1M':'1day','3M':'1day'};
+  const outputMap={'1D':78,'1W':40,'1M':30,'3M':90};
   try{
-    const r=await fetch(`https://api.coinbase.com/v2/prices/${sym}/spot`);
+    const interval=intervalMap[range];
+    const outputsize=outputMap[range];
+    const r=await fetch(`https://api.twelvedata.com/time_series?symbol=${sym}&interval=${interval}&outputsize=${outputsize}&apikey=${key}`);
     if(!r.ok)return null;
     const d=await r.json();
-    const price=parseFloat(d.data?.amount);
-    if(isNaN(price))return null;
-    // get 24h change via exchange rates
-    return{price,prev:null,high:null,low:null,vol:null,chg:null,pct:null,sym};
+    if(d.status==='error'||!d.values)return null;
+    return d.values.reverse().map(x=>({t:new Date(x.datetime).getTime(),v:parseFloat(x.close)})).filter(x=>!isNaN(x.v));
   }catch{return null;}
 }
 
-// Enhanced crypto with 24h change from Coinbase
-async function fetchCryptoFull(sym,id){
-  const key=getFmpKey();
-  if(key){
-    // Try FMP for crypto too — it supports crypto
-    const q=await fetchFmpQuote(id);
-    if(q)return q;
-  }
-  // Fallback: Coinbase spot price only
-  return await fetchCryptoPrice(sym+'-USD');
+// ── COINGECKO — CRYPTO ───────────────────────────────────────
+const GECKO_IDS={
+  'BTC-USD':'bitcoin','ETH-USD':'ethereum','SOL-USD':'solana',
+  'XRP-USD':'ripple','DOGE-USD':'dogecoin','ADA-USD':'cardano',
+  'AVAX-USD':'avalanche-2','LINK-USD':'chainlink','DOT-USD':'polkadot',
+  'MATIC-USD':'matic-network','LTC-USD':'litecoin','UNI-USD':'uniswap',
+};
+
+async function fetchGeckoPrices(syms){
+  const key=getCoinGeckoKey();if(!key)return {};
+  const ids=syms.map(s=>GECKO_IDS[s]).filter(Boolean);
+  if(!ids.length)return {};
+  try{
+    const r=await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids.join(',')}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_high_24h=true&include_low_24h=true&x_cg_demo_api_key=${key}`);
+    if(!r.ok)return {};
+    const d=await r.json();
+    const result={};
+    syms.forEach(s=>{
+      const id=GECKO_IDS[s];
+      if(!id||!d[id])return;
+      const coin=d[id];
+      const price=coin.usd;
+      const pct=coin.usd_24h_change||0;
+      const prev=price/(1+pct/100);
+      result[s]={price,prev,high:coin.usd_24h_high||price,low:coin.usd_24h_low||price,vol:coin.usd_24h_vol||0,chg:price-prev,pct,sym:s};
+    });
+    return result;
+  }catch{return {};}
 }
 
-async function fetchFmpHistory(sym,range){
-  const key=getFmpKey();if(!key)return null;
+async function fetchGeckoHistory(sym,range){
+  const key=getCoinGeckoKey();if(!key)return null;
+  const id=GECKO_IDS[sym];if(!id)return null;
+  const daysMap={'1D':1,'1W':7,'1M':30,'3M':90};
+  const days=daysMap[range]||7;
   try{
-    let url;
-    if(range==='1D'){
-      url=`https://financialmodelingprep.com/api/v3/historical-chart/5min/${sym}?apikey=${key}`;
-    } else if(range==='1W'){
-      url=`https://financialmodelingprep.com/api/v3/historical-chart/1hour/${sym}?apikey=${key}`;
-    } else {
-      url=`https://financialmodelingprep.com/api/v3/historical-price-full/${sym}?apikey=${key}`;
-    }
-    const r=await fetch(url);if(!r.ok)return null;
+    const r=await fetch(`https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=${days}&x_cg_demo_api_key=${key}`);
+    if(!r.ok)return null;
     const d=await r.json();
-    let arr=d.historical||d;
-    if(!Array.isArray(arr)||arr.length===0)return null;
-    // FMP returns newest first — reverse for chart
-    arr=arr.slice(0,range==='3M'?90:range==='1M'?30:arr.length).reverse();
-    return arr.map(x=>({t:new Date(x.date).getTime(),v:x.close})).filter(x=>x.v!=null&&!isNaN(x.v));
+    if(!d.prices)return null;
+    return d.prices.map(([t,v])=>({t,v}));
   }catch{return null;}
 }
 
@@ -738,21 +780,23 @@ function updateTopBar(){
 
 async function loadAllPrices(){
   const list=loadWatchlist();
-  const fmpKey=getFmpKey();
-  // Load all tickers in watchlist + SPY/QQQ for mood
-  const toLoad=[...new Set([...list.map(x=>x.sym),'SPY','QQQ'])];
-  await Promise.allSettled(toLoad.map(async sym=>{
-    // Use Coinbase for crypto (reliable, no key)
-    if(sym.endsWith('-USD')&&!fmpKey){
-      const q=await fetchCryptoPrice(sym);
-      if(q)priceCache[sym]=q;
-    } else if(fmpKey){
-      const q=await fetchFmpQuote(sym);
-      if(q)priceCache[sym]=q;
-    }
+  const allSyms=[...new Set([...list.map(x=>x.sym),'SPY','QQQ'])];
+  const stockSyms=allSyms.filter(s=>!GECKO_IDS[s]);
+  const cryptoSyms=allSyms.filter(s=>GECKO_IDS[s]);
+
+  // Load stocks via Twelve Data
+  await Promise.allSettled(stockSyms.map(async sym=>{
+    const q=await fetchTwelveQuote(sym);
+    if(q)priceCache[sym]=q;
   }));
-  renderWatchlist();
-  updateTopBar();
+  renderWatchlist();updateTopBar();
+
+  // Load crypto via CoinGecko (batch call)
+  if(cryptoSyms.length){
+    const geckoResults=await fetchGeckoPrices(cryptoSyms);
+    Object.assign(priceCache,geckoResults);
+    renderWatchlist();updateTopBar();
+  }
 }
 
 // ── SELECT TICKER ─────────────────────────────────────────────
@@ -778,11 +822,12 @@ async function selectTick(sym,name,displaySym){
 }
 
 async function loadChart(sym,displaySym){
-  const data=await fetchFmpHistory(sym,chartRange);
+  const isCrypto=!!GECKO_IDS[sym];
+  const data=isCrypto?await fetchGeckoHistory(sym,chartRange):await fetchTwelveHistory(sym,chartRange);
   const area=document.getElementById('chartArea');
+  const noKey=isCrypto?!getCoinGeckoKey():!getTwelveKey();
   if(!data||data.length<2){
-    const noKey=!getFmpKey();
-    area.innerHTML=`<div class="chart-placeholder">${noKey?'Add your FMP key in Settings to load charts':'Chart data unavailable — market may be closed or try a different range'}</div>`;
+    area.innerHTML=`<div class="chart-placeholder">${noKey?'Add your API key in Settings to load charts':'Chart data unavailable — try a different range'}</div>`;
     document.getElementById('d-chart-title').textContent=(displaySym||sym)+' — PRICE CHART';
     return;
   }
@@ -1067,7 +1112,8 @@ function updateClock(){
 // ── INIT ──────────────────────────────────────────────────────
 window.onload=()=>{
   const ak=getAnthropicKey();if(ak)document.getElementById('apiKeyInput').value=ak;
-  const fk=getFmpKey();if(fk){document.getElementById('fmpKeyInput').value=fk;document.getElementById('fmpStatus').textContent='✓ FMP key loaded';document.getElementById('fmpStatus').style.color='var(--green)';}
+  const tk=getTwelveKey();if(tk){document.getElementById('twelveKeyInput').value=tk;document.getElementById('twelveStatus').textContent='✓ Twelve Data key loaded';document.getElementById('twelveStatus').style.color='var(--green)';}
+  const gk=getCoinGeckoKey();if(gk){document.getElementById('geckoKeyInput').value=gk;document.getElementById('geckoStatus').textContent='✓ CoinGecko key loaded';document.getElementById('geckoStatus').style.color='var(--green)';}
   loadTrades();renderGloss();renderStrategies();
   updateClock();setInterval(updateClock,1000);
   loadNews();
