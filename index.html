@@ -1168,7 +1168,6 @@ function updateClock(){
   document.getElementById('greeting').textContent=greeting;
 }
 
-// ── INIT ──────────────────────────────────────────────────────
 // ── NIGHT SKY STARS ──────────────────────────────────────────
 (function(){
   const sf=document.getElementById('starfield');
@@ -1182,21 +1181,21 @@ function updateClock(){
     const opacity=Math.random()*0.6+0.2;
     const dur=Math.random()*4+2;
     const delay=Math.random()*6;
-    // Occasionally add a slightly blue or warm tint to a star
     const tints=['#ffffff','#ffffff','#ffffff','#ffffff','#cce4ff','#ffeedd','#ffffff'];
     const color=tints[Math.floor(Math.random()*tints.length)];
     s.style.cssText=`left:${x}%;top:${y}%;width:${size}px;height:${size}px;background:${color};opacity:${opacity};--base-opacity:${opacity};--dur:${dur}s;--delay:-${delay}s;`;
-    // Bigger stars get a soft glow
     if(size>2){s.style.boxShadow=`0 0 ${size*2}px ${size}px rgba(255,255,255,0.15)`;}
     sf.appendChild(s);
   }
-  // Add a few shooting star streaks as static dim lines
   for(let i=0;i<3;i++){
     const streak=document.createElement('div');
     streak.style.cssText=`position:absolute;left:${Math.random()*80}%;top:${Math.random()*40}%;width:${Math.random()*60+20}px;height:0.5px;background:linear-gradient(90deg,rgba(255,255,255,0.4),transparent);transform:rotate(${Math.random()*30-15}deg);opacity:${Math.random()*0.3+0.1};`;
     sf.appendChild(streak);
   }
 })();
+
+// ── INIT ──────────────────────────────────────────────────────
+window.onload=()=>{
   const ak=getAnthropicKey();if(ak)document.getElementById('apiKeyInput').value=ak;
   const tk=getTwelveKey();if(tk){document.getElementById('twelveKeyInput').value=tk;document.getElementById('twelveStatus').textContent='✓ Twelve Data key loaded';document.getElementById('twelveStatus').style.color='var(--green)';}
   const gk=getCoinGeckoKey();if(gk){document.getElementById('geckoKeyInput').value=gk;document.getElementById('geckoStatus').textContent='✓ CoinGecko key loaded';document.getElementById('geckoStatus').style.color='var(--green)';}
