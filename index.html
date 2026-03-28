@@ -831,7 +831,7 @@ async function loadChart(sym,displaySym){
     document.getElementById('d-chart-title').textContent=(displaySym||sym)+' — PRICE CHART';
     return;
   }
-  area.innerHTML='<canvas id="dashChart" height="120"></canvas>';
+  area.innerHTML='<canvas id="dashChart" height="220"></canvas>';
   const labels=data.map(d=>{
     const dt=new Date(d.t);
     return chartRange==='1D'?dt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):dt.toLocaleDateString([],{month:'short',day:'numeric'});
@@ -846,9 +846,9 @@ async function loadChart(sym,displaySym){
   dashChartObj=new Chart(ctx,{
     type:'line',
     data:{labels,datasets:[{data:vals,borderColor:color,borderWidth:1.5,pointRadius:0,fill:true,
-      backgroundColor:()=>{const g=ctx.createLinearGradient(0,0,0,120);g.addColorStop(0,isUp?'rgba(77,204,110,0.12)':'rgba(224,85,85,0.12)');g.addColorStop(1,'rgba(0,0,0,0)');return g;},tension:0.4}]},
+      backgroundColor:()=>{const g=ctx.createLinearGradient(0,0,0,220);g.addColorStop(0,isUp?'rgba(77,204,110,0.12)':'rgba(224,85,85,0.12)');g.addColorStop(1,'rgba(0,0,0,0)');return g;},tension:0.4}]},
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,backgroundColor:'#000',titleColor:'#888',bodyColor:'#fff',borderColor:'#333',borderWidth:1,displayColors:false,callbacks:{label:c=>(isUp?'▲ ':'▼ ')+'$'+parseFloat(c.raw).toFixed(2)}}},
+      plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,backgroundColor:'#000',titleColor:'#888',borderColor:'#333',borderWidth:1,displayColors:false,callbacks:{labelColor:()=>({backgroundColor:'transparent',borderColor:'transparent'}),labelTextColor:()=>isUp?'#4dcc6e':'#e05555',label:c=>(isUp?'▲ ':'▼ ')+'$'+parseFloat(c.raw).toFixed(2)}}},
       scales:{x:{display:false},y:{display:true,position:'right',grid:{color:'#222'},ticks:{color:'#888',font:{size:10},callback:v=>'$'+parseFloat(v).toFixed(0)}}},
       interaction:{mode:'nearest',axis:'x',intersect:false}}
   });
