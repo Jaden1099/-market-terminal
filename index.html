@@ -810,21 +810,13 @@ function updateTopBar(){
   }
 }
 
-// ── FAST PRICE LOADING ───────────────────────────────────────
-let lastFetchTime={};
-const CACHE_TTL=60000; // 60 seconds
-
-function isFresh(sym){return priceCache[sym]&&(Date.now()-(lastFetchTime[sym]||0))<CACHE_TTL;}
-
 async function fetchTwelveBatch(syms){
   const key=getTwelveKey();if(!key)return;
-  // Twelve Data supports batch quotes — comma separated, 1 API call
   try{
     const r=await fetch(`https://api.twelvedata.com/quote?symbol=${syms.join(',')}&apikey=${key}`);
     if(!r.ok)return;
     const d=await r.json();
     syms.forEach(sym=>{
-      // If batch, response is keyed by symbol. If single, it's direct.
       const q=syms.length===1?d:d[sym];
       if(!q||q.status==='error'||!q.close)return;
       const price=parseFloat(q.close);
@@ -832,9 +824,42 @@ async function fetchTwelveBatch(syms){
       const chg=price-prev;
       const pct=(chg/prev)*100;
       priceCache[sym]={price,prev,high:parseFloat(q.high),low:parseFloat(q.low),vol:parseInt(q.volume)||0,chg,pct,sym};
-      lastFetchTime[sym]=Date.now();
     });
   }catch{}
+}
+
+// ── INSTANT CACHE SYSTEM ─────────────────────────────────────
+const PRICE_CACHE_KEY='terminal_price_cache';
+const NEWS_CACHE_KEY='terminal_news_cache';
+const CHART_CACHE_KEY='terminal_chart_cache';
+const CACHE_TTL=120000; // 2 minutes
+
+function savePriceCache(){
+  try{localStorage.setItem(PRICE_CACHE_KEY,JSON.stringify({data:priceCache,ts:Date.now()}));}catch{}
+}
+function loadPriceCache(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(PRICE_CACHE_KEY)||'{}');
+    if(saved.data&&(Date.now()-saved.ts)<CACHE_TTL*5){
+      Object.assign(priceCache,saved.data);return true;
+    }
+  }catch{}
+  return false;
+}
+function saveChartCache(key,data){
+  try{
+    const all=JSON.parse(localStorage.getItem(CHART_CACHE_KEY)||'{}');
+    all[key]={data,ts:Date.now()};
+    localStorage.setItem(CHART_CACHE_KEY,JSON.stringify(all));
+  }catch{}
+}
+function loadChartCache(key){
+  try{
+    const all=JSON.parse(localStorage.getItem(CHART_CACHE_KEY)||'{}');
+    const entry=all[key];
+    if(entry&&(Date.now()-entry.ts)<CACHE_TTL*15)return entry.data;
+  }catch{}
+  return null;
 }
 
 async function loadAllPrices(){
@@ -842,24 +867,20 @@ async function loadAllPrices(){
   const allSyms=[...new Set([...list.map(x=>x.sym),'SPY','QQQ'])];
   const stockSyms=allSyms.filter(s=>!GECKO_IDS[s]);
   const cryptoSyms=allSyms.filter(s=>GECKO_IDS[s]);
-
-  // Priority: load top bar stocks first so UI fills instantly
   const priority=['SPY','QQQ','AAPL','NVDA','MSFT','TSLA'];
   const priorityStocks=stockSyms.filter(s=>priority.includes(s));
   const restStocks=stockSyms.filter(s=>!priority.includes(s));
 
-  // Load priority stocks + all crypto simultaneously
-  await Promise.all([
+  // Fetch silently in background, save to cache, re-render when done
+  Promise.all([
     priorityStocks.length?fetchTwelveBatch(priorityStocks):Promise.resolve(),
     cryptoSyms.length?fetchGeckoPrices(cryptoSyms).then(r=>{Object.assign(priceCache,r);}):Promise.resolve(),
-  ]);
-  renderWatchlist();updateTopBar();
-
-  // Load remaining stocks in one batch call
-  if(restStocks.length){
-    await fetchTwelveBatch(restStocks);
-    renderWatchlist();updateTopBar();
-  }
+  ]).then(()=>{
+    savePriceCache();renderWatchlist();updateTopBar();
+    if(restStocks.length){
+      fetchTwelveBatch(restStocks).then(()=>{savePriceCache();renderWatchlist();updateTopBar();});
+    }
+  });
 }
 
 // ── SELECT TICKER ─────────────────────────────────────────────
@@ -886,20 +907,31 @@ async function selectTick(sym,name,displaySym){
 
 async function loadChart(sym,displaySym){
   const isCrypto=!!GECKO_IDS[sym];
-  const data=isCrypto?await fetchGeckoHistory(sym,chartRange):await fetchTwelveHistory(sym,chartRange);
-  const area=document.getElementById('chartArea');
-  const noKey=isCrypto?!getCoinGeckoKey():!getTwelveKey();
-  if(!data||data.length<2){
-    area.innerHTML=`<div class="chart-placeholder">${noKey?'Add your API key in Settings to load charts':'Chart data unavailable — try a different range'}</div>`;
-    document.getElementById('d-chart-title').textContent=(displaySym||sym)+' — PRICE CHART';
-    return;
+  const cacheKey=sym+'_'+chartRange;
+
+  // Show cached chart instantly if available
+  const cached=loadChartCache(cacheKey);
+  if(cached&&cached.length>1){
+    renderChart(cached,sym,displaySym,isCrypto);
   }
+
+  // Fetch fresh data silently in background
+  const fresh=isCrypto?await fetchGeckoHistory(sym,chartRange):await fetchTwelveHistory(sym,chartRange);
+  if(fresh&&fresh.length>1){
+    saveChartCache(cacheKey,fresh);
+    renderChart(fresh,sym,displaySym,isCrypto);
+  } else if(!cached){
+    const noKey=isCrypto?!getCoinGeckoKey():!getTwelveKey();
+    document.getElementById('chartArea').innerHTML=`<div class="chart-placeholder">${noKey?'Add your API key in Settings':'Chart data unavailable — try a different range'}</div>`;
+    document.getElementById('d-chart-title').textContent=(displaySym||sym)+' — PRICE CHART';
+  }
+}
+
+function renderChart(data,sym,displaySym,isCrypto){
+  const area=document.getElementById('chartArea');
   area.innerHTML='<canvas id="dashChart" height="220"></canvas>';
-  const labels=data.map(d=>{
-    const dt=new Date(d.t);
-    return chartRange==='1D'?dt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):dt.toLocaleDateString([],{month:'short',day:'numeric'});
-  });
   const vals=data.map(d=>d.v);
+  const labels=data.map(d=>{const dt=new Date(d.t);return chartRange==='1D'?dt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):dt.toLocaleDateString([],{month:'short',day:'numeric'});});
   const isUp=vals[vals.length-1]>=vals[0];
   const color=isUp?'#4dcc6e':'#e05555';
   const pctChg=(((vals[vals.length-1]-vals[0])/vals[0])*100).toFixed(2);
@@ -937,9 +969,19 @@ const FALLBACK_NEWS=[
 ];
 async function loadNews(){
   const el=document.getElementById('newsList');
-  el.innerHTML='<div style="padding:12px;font-size:13px;color:var(--muted);">Loading news...</div>';
-  let articles=FALLBACK_NEWS;
-  // Try Twelve Data news if key available
+
+  // Show cached news instantly
+  try{
+    const cached=JSON.parse(localStorage.getItem(NEWS_CACHE_KEY)||'{}');
+    if(cached.articles&&cached.articles.length){
+      renderNewsItems(cached.articles);
+    } else {
+      renderNewsItems(FALLBACK_NEWS);
+    }
+  }catch{renderNewsItems(FALLBACK_NEWS);}
+
+  // Fetch fresh news silently in background
+  let articles=null;
   const tdKey=getTwelveKey();
   if(tdKey){
     try{
@@ -947,15 +989,19 @@ async function loadNews(){
       if(r.ok){
         const d=await r.json();
         if(d.data&&Array.isArray(d.data)&&d.data.length>0){
-          articles=d.data.map(n=>({
-            title:n.title,
-            date:new Date(n.datetime*1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' today',
-            source:n.source||'Financial News'
-          }));
+          articles=d.data.map(n=>({title:n.title,date:new Date(n.datetime*1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' today',source:n.source||'Financial News'}));
         }
       }
-    }catch(e){}
+    }catch{}
   }
+  if(articles){
+    localStorage.setItem(NEWS_CACHE_KEY,JSON.stringify({articles,ts:Date.now()}));
+    renderNewsItems(articles);
+  }
+}
+
+function renderNewsItems(articles){
+  const el=document.getElementById('newsList');
   el.innerHTML='';
   articles.forEach(a=>{
     const isBull=/(rally|surge|beat|high|gain|rise|jump|record|bull|up|positive)/i.test(a.title);
@@ -1217,10 +1263,18 @@ window.onload=()=>{
   const ak=getAnthropicKey();if(ak)document.getElementById('apiKeyInput').value=ak;
   const tk=getTwelveKey();if(tk){document.getElementById('twelveKeyInput').value=tk;document.getElementById('twelveStatus').textContent='✓ Twelve Data key loaded';document.getElementById('twelveStatus').style.color='var(--green)';}
   const gk=getCoinGeckoKey();if(gk){document.getElementById('geckoKeyInput').value=gk;document.getElementById('geckoStatus').textContent='✓ CoinGecko key loaded';document.getElementById('geckoStatus').style.color='var(--green)';}
+
+  // INSTANT: load cached prices first — shows data immediately with no wait
+  const hadCache=loadPriceCache();
   loadTrades();renderGloss();renderStrategies();
+  if(hadCache){renderWatchlist();updateTopBar();}
   updateClock();setInterval(updateClock,1000);
+
+  // Show news instantly from cache
   loadNews();
-  loadAllPrices();setInterval(loadAllPrices,60000);
+
+  // Then quietly refresh everything in background
+  loadAllPrices();setInterval(loadAllPrices,90000);
   loadBriefing();
 };
 </script>
