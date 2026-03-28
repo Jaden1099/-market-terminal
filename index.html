@@ -848,7 +848,7 @@ async function loadChart(sym,displaySym){
     data:{labels,datasets:[{data:vals,borderColor:color,borderWidth:1.5,pointRadius:0,fill:true,
       backgroundColor:()=>{const g=ctx.createLinearGradient(0,0,0,120);g.addColorStop(0,isUp?'rgba(77,204,110,0.12)':'rgba(224,85,85,0.12)');g.addColorStop(1,'rgba(0,0,0,0)');return g;},tension:0.4}]},
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,backgroundColor:'#000',titleColor:'#888',bodyColor:'#fff',borderColor:'#333',borderWidth:1,callbacks:{label:c=>'$'+parseFloat(c.raw).toFixed(2)}}},
+      plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,backgroundColor:'#000',titleColor:'#888',bodyColor:'#fff',borderColor:'#333',borderWidth:1,displayColors:false,callbacks:{label:c=>(isUp?'▲ ':'▼ ')+'$'+parseFloat(c.raw).toFixed(2)}}},
       scales:{x:{display:false},y:{display:true,position:'right',grid:{color:'#222'},ticks:{color:'#888',font:{size:10},callback:v=>'$'+parseFloat(v).toFixed(0)}}},
       interaction:{mode:'nearest',axis:'x',intersect:false}}
   });
@@ -874,20 +874,20 @@ const FALLBACK_NEWS=[
 ];
 async function loadNews(){
   const el=document.getElementById('newsList');
-  el.innerHTML='<div style="padding:12px;font-size:11px;color:var(--muted);">Loading news...</div>';
+  el.innerHTML='<div style="padding:12px;font-size:13px;color:var(--muted);">Loading news...</div>';
   let articles=FALLBACK_NEWS;
-  // Try FMP news if key available
-  const key=getFmpKey();
-  if(key){
+  // Try Twelve Data news if key available
+  const tdKey=getTwelveKey();
+  if(tdKey){
     try{
-      const r=await fetch(`https://financialmodelingprep.com/api/v3/stock_news?limit=20&apikey=${key}`);
+      const r=await fetch(`https://api.twelvedata.com/news?apikey=${tdKey}&source=bloomberg,reuters,wsj,cnbc&outputsize=12`);
       if(r.ok){
         const d=await r.json();
-        if(Array.isArray(d)&&d.length>0){
-          articles=d.slice(0,12).map(n=>({
+        if(d.data&&Array.isArray(d.data)&&d.data.length>0){
+          articles=d.data.map(n=>({
             title:n.title,
-            date:new Date(n.publishedDate).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' today',
-            source:n.site||'Financial News'
+            date:new Date(n.datetime*1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' today',
+            source:n.source||'Financial News'
           }));
         }
       }
@@ -899,7 +899,7 @@ async function loadNews(){
     const isBear=/(fall|drop|slide|crash|fear|risk|warn|loss|bear|tariff|weak|down)/i.test(a.title);
     const tag=isBull?{t:'BULL',c:'tag-bull'}:isBear?{t:'BEAR',c:'tag-bear'}:{t:'NEWS',c:'tag-neut'};
     const d=document.createElement('div');d.className='news-item';
-    d.innerHTML=`<span class="news-tag ${tag.c}">${tag.t}</span><div class="news-hl">${a.title}</div><div class="news-meta"><span style="color:#888">${a.source}</span> · ${a.date} · <span style="color:#fff;cursor:pointer">ask mentor ▸</span></div>`;
+    d.innerHTML=`<span class="news-tag ${tag.c}">${tag.t}</span><div class="news-hl">${a.title}</div><div class="news-meta"><span style="color:#888">${a.source}</span> · ${a.date} · <span style="color:var(--text2);cursor:pointer">ask mentor ▸</span></div>`;
     d.onclick=()=>mentorAsk('Explain this news simply and how it might affect my paper trades: '+a.title);
     el.appendChild(d);
   });
