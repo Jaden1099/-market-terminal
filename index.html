@@ -338,6 +338,24 @@ body::after{
 .save-btn{background:rgba(255,255,255,0.88);color:#000;border:0.5px solid rgba(255,255,255,0.5);font-family:var(--font);font-size:11px;padding:8px 14px;cursor:pointer;border-radius:1px;letter-spacing:1px;transition:all 0.2s;}
 .save-btn:hover{background:#fff;}
 .key-status{font-size:11px;margin-top:4px;margin-bottom:16px;letter-spacing:0.3px;}
+
+/* FEAR & GREED + WATCH TODAY */
+.fg-watch-row{display:grid;grid-template-columns:300px 1fr;border-bottom:0.5px solid var(--border2);background:transparent;}
+@media(max-width:650px){.fg-watch-row{grid-template-columns:1fr;}}
+.fg-panel{padding:14px 18px;border-right:0.5px solid var(--border2);background:linear-gradient(180deg,rgba(8,8,15,0.9) 0%,rgba(5,5,10,0.9) 100%);}
+.fg-title{font-size:9px;letter-spacing:3px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;}
+.fg-meter-wrap{position:relative;height:8px;background:linear-gradient(90deg,#e05555 0%,#d4a843 40%,#4dcc6e 100%);border-radius:4px;margin-bottom:8px;}
+.fg-needle{position:absolute;top:-4px;width:3px;height:16px;background:#fff;border-radius:2px;transform:translateX(-50%);transition:left 1.5s cubic-bezier(0.4,0,0.2,1);box-shadow:0 0 6px rgba(255,255,255,0.5);}
+.fg-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:6px;}
+.fg-score{font-size:28px;font-weight:bold;letter-spacing:1px;transition:color 0.5s;}
+.fg-label{font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:1px;}
+.watch-panel{padding:14px 18px;background:linear-gradient(180deg,rgba(8,8,15,0.88) 0%,rgba(5,5,10,0.88) 100%);}
+.watch-title{font-size:9px;letter-spacing:3px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;}
+.watch-items{display:flex;flex-direction:column;gap:8px;}
+.watch-item{display:flex;gap:10px;align-items:flex-start;}
+.watch-num{font-size:10px;color:var(--muted);min-width:14px;margin-top:2px;}
+.watch-text{font-size:13px;color:var(--text);line-height:1.5;}
+.watch-loading{font-size:12px;color:var(--muted);font-style:italic;}
 </style>
 </head>
 <body>
@@ -368,6 +386,29 @@ body::after{
   <div class="briefing-bar">
     <div class="briefing-hdr">▸ TODAY'S AI MARKET BRIEFING</div>
     <div id="briefingText" style="font-size:14px;color:var(--muted);font-style:italic;line-height:1.7;">Loading your briefing...</div>
+  </div>
+
+  <!-- FEAR & GREED + WATCH TODAY -->
+  <div class="fg-watch-row">
+    <div class="fg-panel">
+      <div class="fg-title">▸ FEAR & GREED INDEX</div>
+      <div class="fg-meter-wrap">
+        <div class="fg-needle" id="fgNeedle" style="left:50%"></div>
+      </div>
+      <div class="fg-labels">
+        <span style="color:#e05555">FEAR</span>
+        <span>NEUTRAL</span>
+        <span style="color:#4dcc6e">GREED</span>
+      </div>
+      <div class="fg-score" id="fgScore">--</div>
+      <div class="fg-label" id="fgLabel">Calculating...</div>
+    </div>
+    <div class="watch-panel">
+      <div class="watch-title">▸ WHAT TO WATCH TODAY</div>
+      <div class="watch-items" id="watchItems">
+        <div class="watch-loading">Generating your watchlist...</div>
+      </div>
+    </div>
   </div>
 
   <div class="tabs">
@@ -876,9 +917,9 @@ async function loadAllPrices(){
     priorityStocks.length?fetchTwelveBatch(priorityStocks):Promise.resolve(),
     cryptoSyms.length?fetchGeckoPrices(cryptoSyms).then(r=>{Object.assign(priceCache,r);}):Promise.resolve(),
   ]).then(()=>{
-    savePriceCache();renderWatchlist();updateTopBar();
+    savePriceCache();renderWatchlist();updateTopBar();calcFearGreed();
     if(restStocks.length){
-      fetchTwelveBatch(restStocks).then(()=>{savePriceCache();renderWatchlist();updateTopBar();});
+      fetchTwelveBatch(restStocks).then(()=>{savePriceCache();renderWatchlist();updateTopBar();calcFearGreed();});
     }
   });
 }
@@ -1218,7 +1259,115 @@ function updateClock(){
   document.getElementById('greeting').textContent=greeting;
 }
 
-// ── NIGHT SKY STARS ──────────────────────────────────────────
+// ── FEAR & GREED INDEX ───────────────────────────────────────
+function calcFearGreed(){
+  // Calculate from available market data
+  // Uses: SPY % change, BTC % change, VIX level, crypto vs stock ratio
+  let score=50; // start neutral
+  let factors=0;
+
+  const spy=priceCache['SPY'];
+  const btc=priceCache['BTC-USD'];
+  const qqq=priceCache['QQQ'];
+
+  if(spy&&spy.pct!=null){
+    // SPY momentum — big influence
+    score+=spy.pct*8;
+    factors++;
+  }
+  if(qqq&&qqq.pct!=null){
+    score+=qqq.pct*6;
+    factors++;
+  }
+  if(btc&&btc.pct!=null){
+    // Crypto sentiment — high influence on overall greed
+    score+=btc.pct*4;
+    factors++;
+  }
+
+  // Check if multiple assets are down (fear) or up (greed)
+  const allAssets=[spy,btc,priceCache['ETH-USD'],priceCache['AAPL'],priceCache['NVDA']].filter(Boolean);
+  const downCount=allAssets.filter(a=>a.pct!=null&&a.pct<0).length;
+  const upCount=allAssets.filter(a=>a.pct!=null&&a.pct>0).length;
+  if(allAssets.length>0){
+    const ratio=(upCount-downCount)/allAssets.length;
+    score+=ratio*15;
+  }
+
+  // Clamp between 0 and 100
+  score=Math.max(0,Math.min(100,Math.round(score)));
+
+  // Update UI
+  document.getElementById('fgNeedle').style.left=score+'%';
+  document.getElementById('fgScore').textContent=score;
+
+  let label,color;
+  if(score<=20){label='EXTREME FEAR';color='#e05555';}
+  else if(score<=40){label='FEAR';color='#e07755';}
+  else if(score<=60){label='NEUTRAL';color='var(--amber)';}
+  else if(score<=80){label='GREED';color='#8dcc4d';}
+  else{label='EXTREME GREED';color='#4dcc6e';}
+
+  document.getElementById('fgScore').style.color=color;
+  document.getElementById('fgLabel').textContent=label;
+  document.getElementById('fgLabel').style.color=color;
+}
+
+// ── WHAT TO WATCH TODAY ──────────────────────────────────────
+async function loadWatchToday(){
+  const key=getAnthropicKey();
+  const cached=localStorage.getItem('watch_today_cache');
+  const cachedDate=localStorage.getItem('watch_today_date');
+  const today=new Date().toLocaleDateString();
+
+  // Show cached instantly
+  if(cachedDate===today&&cached){
+    renderWatchItems(JSON.parse(cached));
+    return;
+  }
+
+  if(!key){
+    renderWatchItems([
+      'Watch BTC — crypto sentiment leading stocks today',
+      'Watch SPY levels — broad market direction sets the tone',
+      'Check earnings calendar — any major reports this week?'
+    ]);
+    return;
+  }
+
+  try{
+    // Build context from current prices
+    const spy=priceCache['SPY'];
+    const btc=priceCache['BTC-USD'];
+    const priceCtx=[];
+    if(spy&&spy.pct!=null)priceCtx.push(`SPY ${spy.pct>=0?'+':''}${spy.pct.toFixed(2)}%`);
+    if(btc&&btc.pct!=null)priceCtx.push(`BTC ${btc.pct>=0?'+':''}${btc.pct.toFixed(2)}%`);
+
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,
+        messages:[{role:'user',content:`You are a trading mentor for a day-3 beginner paper trader. Current market data: ${priceCtx.join(', ')||'markets closed'}. Give exactly 3 short things to watch today as a beginner. Each should be one sentence, specific and actionable. Format as a JSON array of 3 strings. No markdown, just the array.`}]})});
+    const d=await r.json();
+    const text=d.content?.[0]?.text||'[]';
+    const items=JSON.parse(text.replace(/```json|```/g,'').trim());
+    if(Array.isArray(items)&&items.length){
+      localStorage.setItem('watch_today_cache',JSON.stringify(items));
+      localStorage.setItem('watch_today_date',today);
+      renderWatchItems(items);
+    }
+  }catch{
+    renderWatchItems([
+      'Watch BTC price action — crypto often leads tech stocks',
+      'Check SPY direction in first 30 minutes — sets tone for the day',
+      'Look for stocks with high volume and clear trend direction'
+    ]);
+  }
+}
+
+function renderWatchItems(items){
+  const el=document.getElementById('watchItems');
+  el.innerHTML=items.map((item,i)=>`<div class="watch-item"><span class="watch-num">${i+1}.</span><span class="watch-text">${item}</span></div>`).join('');
+}
 (function(){
   const sf=document.getElementById('starfield');
   const count=500;
@@ -1267,11 +1416,12 @@ window.onload=()=>{
   // INSTANT: load cached prices first — shows data immediately with no wait
   const hadCache=loadPriceCache();
   loadTrades();renderGloss();renderStrategies();
-  if(hadCache){renderWatchlist();updateTopBar();}
+  if(hadCache){renderWatchlist();updateTopBar();calcFearGreed();}
   updateClock();setInterval(updateClock,1000);
 
   // Show news instantly from cache
   loadNews();
+  loadWatchToday();
 
   // Then quietly refresh everything in background
   loadAllPrices();setInterval(loadAllPrices,90000);
