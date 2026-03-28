@@ -603,11 +603,10 @@ function saveWatchlist(list){localStorage.setItem('watchlist',JSON.stringify(lis
 
 function getDisplaySym(sym){return sym.replace('-USD','').replace('USD','');}
 
-function addTicker(){
+async function addTicker(){
   const input=document.getElementById('addTickerInput');
   let sym=input.value.trim().toUpperCase();
   if(!sym)return;
-  // normalize common inputs
   if(sym==='BTC')sym='BTC-USD';
   if(sym==='ETH')sym='ETH-USD';
   if(sym==='SOL')sym='SOL-USD';
@@ -620,15 +619,16 @@ function addTicker(){
   list.push({sym,name:sym});
   saveWatchlist(list);
   input.value='';
-  // fetch price for new ticker then re-render
-  const isCrypto=!!GECKO_IDS[sym];
-  if(isCrypto){
-    const results=await fetchGeckoPrices([sym]);
-    if(results[sym])priceCache[sym]=results[sym];
-  } else {
-    const q=await fetchTwelveQuote(sym);
-    if(q)priceCache[sym]=q;
-  }
+  try{
+    const isCrypto=!!GECKO_IDS[sym];
+    if(isCrypto){
+      const results=await fetchGeckoPrices([sym]);
+      if(results[sym])priceCache[sym]=results[sym];
+    } else {
+      const q=await fetchTwelveQuote(sym);
+      if(q)priceCache[sym]=q;
+    }
+  }catch(e){}
   renderWatchlist();
 }
 
