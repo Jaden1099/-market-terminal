@@ -1326,50 +1326,37 @@ function updateClock(){
 
 // ── FEAR & GREED INDEX ───────────────────────────────────────
 function calcFearGreed(){
-  // Calculate from available market data
-  // Uses: SPY % change, BTC % change, VIX level, crypto vs stock ratio
-  let score=50; // start neutral
-  let factors=0;
-
   const spy=priceCache['SPY'];
   const btc=priceCache['BTC-USD'];
   const qqq=priceCache['QQQ'];
+  const eth=priceCache['ETH-USD'];
+  const aapl=priceCache['AAPL'];
+  const nvda=priceCache['NVDA'];
 
-  if(spy&&spy.pct!=null){
-    // SPY momentum — big influence
-    score+=spy.pct*8;
-    factors++;
-  }
-  if(qqq&&qqq.pct!=null){
-    score+=qqq.pct*6;
-    factors++;
-  }
-  if(btc&&btc.pct!=null){
-    // Crypto sentiment — high influence on overall greed
-    score+=btc.pct*4;
-    factors++;
-  }
+  // Need at least some data to calculate
+  const available=[spy,btc,qqq,eth,aapl,nvda].filter(x=>x&&x.pct!=null);
+  if(available.length===0)return;
 
-  // Check if multiple assets are down (fear) or up (greed)
-  const allAssets=[spy,btc,priceCache['ETH-USD'],priceCache['AAPL'],priceCache['NVDA']].filter(Boolean);
-  const downCount=allAssets.filter(a=>a.pct!=null&&a.pct<0).length;
-  const upCount=allAssets.filter(a=>a.pct!=null&&a.pct>0).length;
-  if(allAssets.length>0){
-    const ratio=(upCount-downCount)/allAssets.length;
-    score+=ratio*15;
-  }
+  // Weighted average of % changes, normalized to 0-100 scale
+  // A -2% day = ~35 (fear), flat = ~50, +2% day = ~65 (greed)
+  const weights={SPY:3,QQQ:2,'BTC-USD':2,'ETH-USD':1,AAPL:1,NVDA:1};
+  let weightedSum=0,totalWeight=0;
+  available.forEach(q=>{
+    const w=weights[q.sym]||1;
+    // Map % change to 0-100: -5% = 0, 0% = 50, +5% = 100
+    const mapped=Math.max(0,Math.min(100,50+(q.pct*10)));
+    weightedSum+=mapped*w;
+    totalWeight+=w;
+  });
+  const score=Math.round(weightedSum/totalWeight);
 
-  // Clamp between 0 and 100
-  score=Math.max(0,Math.min(100,Math.round(score)));
-
-  // Update UI
   document.getElementById('fgNeedle').style.left=score+'%';
   document.getElementById('fgScore').textContent=score;
 
   let label,color;
   if(score<=20){label='EXTREME FEAR';color='#e05555';}
-  else if(score<=40){label='FEAR';color='#e07755';}
-  else if(score<=60){label='NEUTRAL';color='var(--amber)';}
+  else if(score<=38){label='FEAR';color='#e07755';}
+  else if(score<=62){label='NEUTRAL';color='var(--amber)';}
   else if(score<=80){label='GREED';color='#8dcc4d';}
   else{label='EXTREME GREED';color='#4dcc6e';}
 
