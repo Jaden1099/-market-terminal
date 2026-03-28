@@ -778,23 +778,54 @@ function updateTopBar(){
   }
 }
 
+// ── FAST PRICE LOADING ───────────────────────────────────────
+let lastFetchTime={};
+const CACHE_TTL=60000; // 60 seconds
+
+function isFresh(sym){return priceCache[sym]&&(Date.now()-(lastFetchTime[sym]||0))<CACHE_TTL;}
+
+async function fetchTwelveBatch(syms){
+  const key=getTwelveKey();if(!key)return;
+  // Twelve Data supports batch quotes — comma separated, 1 API call
+  try{
+    const r=await fetch(`https://api.twelvedata.com/quote?symbol=${syms.join(',')}&apikey=${key}`);
+    if(!r.ok)return;
+    const d=await r.json();
+    syms.forEach(sym=>{
+      // If batch, response is keyed by symbol. If single, it's direct.
+      const q=syms.length===1?d:d[sym];
+      if(!q||q.status==='error'||!q.close)return;
+      const price=parseFloat(q.close);
+      const prev=parseFloat(q.previous_close);
+      const chg=price-prev;
+      const pct=(chg/prev)*100;
+      priceCache[sym]={price,prev,high:parseFloat(q.high),low:parseFloat(q.low),vol:parseInt(q.volume)||0,chg,pct,sym};
+      lastFetchTime[sym]=Date.now();
+    });
+  }catch{}
+}
+
 async function loadAllPrices(){
   const list=loadWatchlist();
   const allSyms=[...new Set([...list.map(x=>x.sym),'SPY','QQQ'])];
   const stockSyms=allSyms.filter(s=>!GECKO_IDS[s]);
   const cryptoSyms=allSyms.filter(s=>GECKO_IDS[s]);
 
-  // Load stocks via Twelve Data
-  await Promise.allSettled(stockSyms.map(async sym=>{
-    const q=await fetchTwelveQuote(sym);
-    if(q)priceCache[sym]=q;
-  }));
+  // Priority: load top bar stocks first so UI fills instantly
+  const priority=['SPY','QQQ','AAPL','NVDA','MSFT','TSLA'];
+  const priorityStocks=stockSyms.filter(s=>priority.includes(s));
+  const restStocks=stockSyms.filter(s=>!priority.includes(s));
+
+  // Load priority stocks + all crypto simultaneously
+  await Promise.all([
+    priorityStocks.length?fetchTwelveBatch(priorityStocks):Promise.resolve(),
+    cryptoSyms.length?fetchGeckoPrices(cryptoSyms).then(r=>{Object.assign(priceCache,r);}):Promise.resolve(),
+  ]);
   renderWatchlist();updateTopBar();
 
-  // Load crypto via CoinGecko (batch call)
-  if(cryptoSyms.length){
-    const geckoResults=await fetchGeckoPrices(cryptoSyms);
-    Object.assign(priceCache,geckoResults);
+  // Load remaining stocks in one batch call
+  if(restStocks.length){
+    await fetchTwelveBatch(restStocks);
     renderWatchlist();updateTopBar();
   }
 }
