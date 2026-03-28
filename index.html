@@ -851,10 +851,11 @@ function updateTopBar(){
   }
 }
 
+// ── TWELVE DATA BATCH ────────────────────────────────────────
 async function fetchTwelveBatch(syms){
   const key=getTwelveKey();if(!key)return;
   try{
-    const r=await fetch(`https://api.twelvedata.com/quote?symbol=${syms.join(',')}&apikey=${key}`);
+    const r=await fetch(`https://api.twelvedata.com/quote?symbol=${syms.join(',')}&apikey=${key}`,{signal:AbortSignal.timeout(8000)});
     if(!r.ok)return;
     const d=await r.json();
     syms.forEach(sym=>{
@@ -873,7 +874,7 @@ async function fetchTwelveBatch(syms){
 const PRICE_CACHE_KEY='terminal_price_cache';
 const NEWS_CACHE_KEY='terminal_news_cache';
 const CHART_CACHE_KEY='terminal_chart_cache';
-const CACHE_TTL=120000; // 2 minutes
+const CACHE_TTL=120000;
 
 function savePriceCache(){
   try{localStorage.setItem(PRICE_CACHE_KEY,JSON.stringify({data:priceCache,ts:Date.now()}));}catch{}
@@ -903,23 +904,87 @@ function loadChartCache(key){
   return null;
 }
 
+// ── COINBASE — FREE CRYPTO BACKUP (no key needed) ────────────
+const COINBASE_IDS={
+  'BTC-USD':'BTC-USD','ETH-USD':'ETH-USD','SOL-USD':'SOL-USD',
+  'XRP-USD':'XRP-USD','DOGE-USD':'DOGE-USD','LTC-USD':'LTC-USD',
+  'ADA-USD':'ADA-USD','AVAX-USD':'AVAX-USD',
+};
+async function fetchCoinbasePrices(syms){
+  const result={};
+  await Promise.allSettled(syms.filter(s=>COINBASE_IDS[s]).map(async sym=>{
+    try{
+      const r=await fetch(`https://api.coinbase.com/v2/prices/${sym}/spot`,{signal:AbortSignal.timeout(4000)});
+      if(!r.ok)return;
+      const d=await r.json();
+      const price=parseFloat(d.data?.amount);
+      if(isNaN(price))return;
+      // Only use if we don't already have better data from CoinGecko
+      if(!priceCache[sym]||!priceCache[sym].chg){
+        result[sym]={price,prev:null,high:null,low:null,vol:null,chg:null,pct:null,sym};
+      }
+    }catch{}
+  }));
+  return result;
+}
+
+// ── METALS/COMMODITIES — FREE BACKUP ─────────────────────────
+async function fetchCommodityPrices(){
+  // Use Twelve Data for commodities too but as separate call
+  const key=getTwelveKey();if(!key)return;
+  try{
+    const comms=['XAU/USD','XAG/USD','WTI/USD'];
+    const r=await fetch(`https://api.twelvedata.com/price?symbol=${comms.join(',')}&apikey=${key}`,{signal:AbortSignal.timeout(5000)});
+    if(!r.ok)return;
+    const d=await r.json();
+    if(d['XAU/USD']?.price){
+      const p=parseFloat(d['XAU/USD'].price);
+      if(!isNaN(p))priceCache['GCUSD']={price:p,prev:null,high:null,low:null,vol:null,chg:null,pct:null,sym:'GCUSD'};
+    }
+    if(d['WTI/USD']?.price){
+      const p=parseFloat(d['WTI/USD'].price);
+      if(!isNaN(p))priceCache['CLUSD']={price:p,prev:null,high:null,low:null,vol:null,chg:null,pct:null,sym:'CLUSD'};
+    }
+  }catch{}
+}
+
 async function loadAllPrices(){
   const list=loadWatchlist();
   const allSyms=[...new Set([...list.map(x=>x.sym),'SPY','QQQ'])];
   const stockSyms=allSyms.filter(s=>!GECKO_IDS[s]);
   const cryptoSyms=allSyms.filter(s=>GECKO_IDS[s]);
-  const priority=['SPY','QQQ','AAPL','NVDA','MSFT','TSLA'];
+  const priority=['SPY','QQQ','AAPL','NVDA','MSFT','TSLA','AMZN','META','GOOGL','JPM'];
   const priorityStocks=stockSyms.filter(s=>priority.includes(s));
   const restStocks=stockSyms.filter(s=>!priority.includes(s));
 
-  // Fetch silently in background, save to cache, re-render when done
-  Promise.all([
+  // Fire ALL sources simultaneously — fastest wins
+  const jobs=[
+    // Stocks via Twelve Data (batch)
     priorityStocks.length?fetchTwelveBatch(priorityStocks):Promise.resolve(),
+    // Crypto via CoinGecko (full data with % change)
     cryptoSyms.length?fetchGeckoPrices(cryptoSyms).then(r=>{Object.assign(priceCache,r);}):Promise.resolve(),
-  ]).then(()=>{
+    // Crypto via Coinbase simultaneously (fills gaps instantly)
+    cryptoSyms.length?fetchCoinbasePrices(cryptoSyms).then(r=>{
+      // Only fill in missing prices — CoinGecko data is better if available
+      Object.keys(r).forEach(sym=>{if(!priceCache[sym]?.price)priceCache[sym]=r[sym];});
+    }):Promise.resolve(),
+    // Commodities via Twelve Data separate call
+    fetchCommodityPrices(),
+  ];
+
+  // Render as soon as any source completes
+  Promise.race(jobs).then(()=>{
+    renderWatchlist();updateTopBar();calcFearGreed();
+  });
+
+  // Full render when all done
+  Promise.all(jobs).then(()=>{
     savePriceCache();renderWatchlist();updateTopBar();calcFearGreed();
+    // Load remaining stocks in background
     if(restStocks.length){
-      fetchTwelveBatch(restStocks).then(()=>{savePriceCache();renderWatchlist();updateTopBar();calcFearGreed();});
+      fetchTwelveBatch(restStocks).then(()=>{
+        savePriceCache();renderWatchlist();updateTopBar();calcFearGreed();
+      });
     }
   });
 }
