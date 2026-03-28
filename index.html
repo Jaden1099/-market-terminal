@@ -8,11 +8,11 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --bg:#080808;
-  --bg1:#0d0d0d;
-  --bg2:#121212;
-  --bg3:#181818;
-  --bg4:#1e1e1e;
+  --bg:#030308;
+  --bg1:#08080f;
+  --bg2:#0d0d16;
+  --bg3:#12121e;
+  --bg4:#181826;
   --metal-light:#2a2a2a;
   --metal-shine:#333333;
   --accent:#e8e8e8;
@@ -23,8 +23,8 @@
   --text:#e8e8e8;
   --text2:#b0b0b0;
   --muted:#606060;
-  --border:#1f1f1f;
-  --border2:#2a2a2a;
+  --border:#1a1a28;
+  --border2:#252535;
   --font:'Times New Roman',Times,serif;
   --glow-green:rgba(77,204,110,0.15);
   --glow-red:rgba(224,85,85,0.15);
@@ -33,19 +33,46 @@
 @keyframes breathe{0%,100%{opacity:0.7;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
 @keyframes flash-green{0%{background:rgba(77,204,110,0.25)}100%{background:transparent}}
 @keyframes flash-red{0%{background:rgba(224,85,85,0.25)}100%{background:transparent}}
-@keyframes shimmer{0%{border-color:#1f1f1f}50%{border-color:#2e2e2e}100%{border-color:#1f1f1f}}
+@keyframes shimmer{0%{border-color:#1a1a28}50%{border-color:#252535}100%{border-color:#1a1a28}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 @keyframes ticker-glow{0%,100%{box-shadow:none}50%{box-shadow:0 0 8px rgba(232,232,232,0.04)}}
+@keyframes nebula-drift{0%,100%{opacity:0.05;transform:scale(1) rotate(0deg)}50%{opacity:0.09;transform:scale(1.08) rotate(2deg)}}
+@keyframes star-twinkle{0%,100%{opacity:var(--base-opacity)}50%{opacity:calc(var(--base-opacity) * 0.2)}}
 
-body{background:var(--bg);font-family:var(--font);color:var(--text);margin:0;min-height:100vh;}
-.terminal{min-height:100vh;display:flex;flex-direction:column;}
+body{
+  background:radial-gradient(ellipse at 20% 30%,#0a0818 0%,#030308 40%,#020206 100%);
+  font-family:var(--font);color:var(--text);margin:0;min-height:100vh;
+  position:relative;overflow-x:hidden;
+}
+
+/* NEBULA GLOWS */
+body::before{
+  content:'';position:fixed;top:-30%;left:-20%;
+  width:80%;height:80%;
+  background:radial-gradient(ellipse at center,rgba(60,30,100,0.07) 0%,rgba(30,20,80,0.04) 40%,transparent 70%);
+  animation:nebula-drift 18s ease-in-out infinite;
+  pointer-events:none;z-index:0;
+}
+body::after{
+  content:'';position:fixed;bottom:-30%;right:-20%;
+  width:80%;height:80%;
+  background:radial-gradient(ellipse at center,rgba(20,50,120,0.06) 0%,rgba(10,30,80,0.03) 40%,transparent 70%);
+  animation:nebula-drift 24s ease-in-out infinite reverse;
+  pointer-events:none;z-index:0;
+}
+
+#starfield{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden;}
+.star{position:absolute;border-radius:50%;background:#fff;animation:star-twinkle var(--dur) ease-in-out infinite var(--delay);}
+
+.terminal{min-height:100vh;display:flex;flex-direction:column;position:relative;z-index:1;}
 
 /* TOP BAR — brushed steel header */
 .topbar{
-  background:linear-gradient(180deg,#161616 0%,#0f0f0f 100%);
+  background:linear-gradient(180deg,rgba(18,18,22,0.97) 0%,rgba(10,10,15,0.97) 100%);
   border-bottom:0.5px solid var(--metal-shine);
   box-shadow:0 1px 0 rgba(255,255,255,0.03);
   padding:8px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  backdrop-filter:blur(4px);
 }
 @keyframes metalShine{
   0%{background-position:-300% center}
@@ -310,6 +337,7 @@ body{background:var(--bg);font-family:var(--font);color:var(--text);margin:0;min
 </style>
 </head>
 <body>
+<div id="starfield"></div>
 <div class="terminal">
   <div class="topbar">
     <div class="logo" id="greeting">MY MARKET TERMINAL</div>
@@ -1141,7 +1169,34 @@ function updateClock(){
 }
 
 // ── INIT ──────────────────────────────────────────────────────
-window.onload=()=>{
+// ── NIGHT SKY STARS ──────────────────────────────────────────
+(function(){
+  const sf=document.getElementById('starfield');
+  const count=280;
+  for(let i=0;i<count;i++){
+    const s=document.createElement('div');
+    s.className='star';
+    const x=Math.random()*100;
+    const y=Math.random()*100;
+    const size=Math.random()<0.85?Math.random()*1.5+0.3:Math.random()*2.5+1.5;
+    const opacity=Math.random()*0.6+0.2;
+    const dur=Math.random()*4+2;
+    const delay=Math.random()*6;
+    // Occasionally add a slightly blue or warm tint to a star
+    const tints=['#ffffff','#ffffff','#ffffff','#ffffff','#cce4ff','#ffeedd','#ffffff'];
+    const color=tints[Math.floor(Math.random()*tints.length)];
+    s.style.cssText=`left:${x}%;top:${y}%;width:${size}px;height:${size}px;background:${color};opacity:${opacity};--base-opacity:${opacity};--dur:${dur}s;--delay:-${delay}s;`;
+    // Bigger stars get a soft glow
+    if(size>2){s.style.boxShadow=`0 0 ${size*2}px ${size}px rgba(255,255,255,0.15)`;}
+    sf.appendChild(s);
+  }
+  // Add a few shooting star streaks as static dim lines
+  for(let i=0;i<3;i++){
+    const streak=document.createElement('div');
+    streak.style.cssText=`position:absolute;left:${Math.random()*80}%;top:${Math.random()*40}%;width:${Math.random()*60+20}px;height:0.5px;background:linear-gradient(90deg,rgba(255,255,255,0.4),transparent);transform:rotate(${Math.random()*30-15}deg);opacity:${Math.random()*0.3+0.1};`;
+    sf.appendChild(streak);
+  }
+})();
   const ak=getAnthropicKey();if(ak)document.getElementById('apiKeyInput').value=ak;
   const tk=getTwelveKey();if(tk){document.getElementById('twelveKeyInput').value=tk;document.getElementById('twelveStatus').textContent='✓ Twelve Data key loaded';document.getElementById('twelveStatus').style.color='var(--green)';}
   const gk=getCoinGeckoKey();if(gk){document.getElementById('geckoKeyInput').value=gk;document.getElementById('geckoStatus').textContent='✓ CoinGecko key loaded';document.getElementById('geckoStatus').style.color='var(--green)';}
