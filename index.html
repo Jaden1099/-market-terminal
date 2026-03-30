@@ -339,7 +339,51 @@ body::after{
 .save-btn:hover{background:#fff;}
 .key-status{font-size:11px;margin-top:4px;margin-bottom:16px;letter-spacing:0.3px;}
 
-/* FEAR & GREED + WATCH TODAY */
+/* PRACTICE MODE */
+.practice-wrap{padding:16px 20px;max-width:1100px;width:100%;margin:0 auto;}
+.practice-header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px;flex-wrap:wrap;}
+.practice-title{font-size:11px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;}
+.practice-sub{font-size:13px;color:var(--text2);line-height:1.6;max-width:500px;}
+.practice-stats{display:flex;gap:8px;flex-wrap:wrap;}
+.ps-card{background:linear-gradient(180deg,rgba(12,12,20,0.92) 0%,rgba(8,8,16,0.92) 100%);border:0.5px solid var(--border2);border-radius:2px;padding:8px 14px;min-width:70px;text-align:center;}
+.ps-label{font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;}
+.ps-val{font-size:18px;font-weight:bold;}
+.practice-controls{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;}
+.pc-left{display:flex;gap:8px;flex-wrap:wrap;}
+.pc-right{display:flex;gap:6px;}
+.pr-select{background:rgba(255,255,255,0.04);border:0.5px solid var(--border2);color:var(--text);font-family:var(--font);font-size:12px;padding:7px 12px;outline:none;border-radius:1px;cursor:pointer;}
+.pr-btn{font-family:var(--font);font-size:11px;padding:7px 14px;border:0.5px solid var(--border2);background:rgba(255,255,255,0.04);color:var(--text2);cursor:pointer;border-radius:1px;letter-spacing:1px;transition:all 0.2s;}
+.pr-btn:hover{border-color:var(--metal-shine);color:var(--text);}
+.pr-play{background:rgba(255,255,255,0.1);border-color:var(--metal-shine);color:var(--text);}
+.pr-reset{color:var(--muted);}
+.practice-chart-area{background:linear-gradient(180deg,rgba(8,8,15,0.9) 0%,rgba(5,5,10,0.9) 100%);border:0.5px solid var(--border2);border-radius:2px;padding:14px;margin-bottom:12px;}
+.practice-price-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.pr-sym{font-size:16px;font-weight:bold;margin-right:10px;}
+.pr-price{font-size:22px;font-weight:bold;color:var(--accent);}
+.pr-chg{font-size:13px;margin-left:8px;}
+.pr-date{font-size:12px;color:var(--muted);letter-spacing:1px;}
+.practice-hidden-msg{font-size:11px;color:var(--muted);letter-spacing:1px;margin-top:8px;text-align:center;padding:6px;border-top:0.5px solid var(--border2);}
+.practice-trade-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+@media(max-width:650px){.practice-trade-row{grid-template-columns:1fr;}}
+.pt-side{background:linear-gradient(180deg,rgba(10,10,18,0.9) 0%,rgba(7,7,14,0.9) 100%);border:0.5px solid var(--border2);border-radius:2px;padding:14px;}
+.pt-label{font-size:9px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;}
+.pt-buttons{display:flex;flex-direction:column;gap:8px;}
+.pt-long{font-family:var(--font);font-size:13px;font-weight:bold;padding:12px;border:0.5px solid rgba(77,204,110,0.4);background:rgba(77,204,110,0.08);color:#4dcc6e;cursor:pointer;border-radius:1px;letter-spacing:1px;transition:all 0.2s;text-align:left;}
+.pt-long:hover{background:rgba(77,204,110,0.15);border-color:var(--green);}
+.pt-short{font-family:var(--font);font-size:13px;font-weight:bold;padding:12px;border:0.5px solid rgba(224,85,85,0.4);background:rgba(224,85,85,0.08);color:#e05555;cursor:pointer;border-radius:1px;letter-spacing:1px;transition:all 0.2s;text-align:left;}
+.pt-short:hover{background:rgba(224,85,85,0.15);border-color:var(--red);}
+.pt-skip{font-family:var(--font);font-size:12px;padding:10px;border:0.5px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;border-radius:1px;letter-spacing:1px;transition:all 0.2s;text-align:left;}
+.pt-skip:hover{color:var(--text2);border-color:var(--metal-shine);}
+.pt-result{background:linear-gradient(180deg,rgba(10,10,18,0.9) 0%,rgba(7,7,14,0.9) 100%);border:0.5px solid var(--border2);border-radius:2px;padding:14px;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:140px;}
+.pr-result-icon{font-size:36px;margin-bottom:8px;}
+.pr-result-text{font-size:16px;font-weight:bold;margin-bottom:4px;}
+.pr-result-sub{font-size:12px;color:var(--muted);text-align:center;line-height:1.6;}
+.practice-log-wrap{background:linear-gradient(180deg,rgba(8,8,15,0.9) 0%,rgba(5,5,10,0.9) 100%);border:0.5px solid var(--border2);border-radius:2px;padding:14px;}
+.practice-log-title{font-size:9px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:10px;}
+.pr-log-item{display:grid;grid-template-columns:120px 80px 80px 80px 1fr;gap:8px;padding:8px 0;border-bottom:0.5px solid rgba(255,255,255,0.03);font-size:12px;align-items:center;}
+.pr-log-item:last-child{border-bottom:none;}
+
+
 .fg-watch-row{display:grid;grid-template-columns:300px 1fr;border-bottom:0.5px solid var(--border2);background:transparent;}
 @media(max-width:650px){.fg-watch-row{grid-template-columns:1fr;}}
 .fg-panel{padding:14px 18px;border-right:0.5px solid var(--border2);background:linear-gradient(180deg,rgba(8,8,15,0.9) 0%,rgba(5,5,10,0.9) 100%);}
@@ -417,6 +461,7 @@ body::after{
     <button class="tab" onclick="showPage('analyzer',this)">▸ ANALYZER</button>
     <button class="tab" onclick="showPage('glossary',this)">▸ GLOSSARY</button>
     <button class="tab" onclick="showPage('strategy',this)">▸ STRATEGIES</button>
+    <button class="tab" onclick="showPage('practice',this)">▸ PRACTICE</button>
     <button class="tab" onclick="showPage('mentor',this)">▸ ASK MENTOR</button>
     <button class="tab" onclick="showPage('settings',this)">▸ SETTINGS</button>
   </div>
@@ -539,7 +584,77 @@ body::after{
     </div>
   </div>
 
-  <!-- MENTOR -->
+  <!-- PRACTICE MODE -->
+  <div class="page" id="page-practice">
+    <div class="practice-wrap">
+      <div class="practice-header">
+        <div>
+          <div class="practice-title">▸ CHART REPLAY — PRACTICE MODE</div>
+          <div class="practice-sub">Real SPY historical data. You only see what a trader would have seen at the time. Practice spotting breakouts, entries and exits.</div>
+        </div>
+        <div class="practice-stats">
+          <div class="ps-card"><div class="ps-label">TRADES</div><div class="ps-val" id="pr-total">0</div></div>
+          <div class="ps-card"><div class="ps-label">WINS</div><div class="ps-val up" id="pr-wins">0</div></div>
+          <div class="ps-card"><div class="ps-label">LOSSES</div><div class="ps-val dn" id="pr-losses">0</div></div>
+          <div class="ps-card"><div class="ps-label">WIN RATE</div><div class="ps-val" id="pr-winrate">--%</div></div>
+          <div class="ps-card"><div class="ps-label">PAPER P&L</div><div class="ps-val" id="pr-pnl">$0</div></div>
+        </div>
+      </div>
+
+      <div class="practice-controls">
+        <div class="pc-left">
+          <select class="pr-select" id="pr-period" onchange="loadPracticeData()">
+            <option value="2024-bull">2024 Bull Run (Jan–Mar 2024)</option>
+            <option value="2022-bear">2022 Bear Market (Jan–Jun 2022)</option>
+            <option value="2023-recovery">2023 Recovery (Jan–Jun 2023)</option>
+            <option value="2020-crash">2020 COVID Crash (Feb–Apr 2020)</option>
+            <option value="2021-peak">2021 Peak & Drop (Oct–Dec 2021)</option>
+          </select>
+          <select class="pr-select" id="pr-timeframe">
+            <option value="day">Daily candles</option>
+            <option value="week">Weekly candles</option>
+          </select>
+        </div>
+        <div class="pc-right">
+          <button class="pr-btn" id="pr-prev" onclick="prPrev()">◀ PREV</button>
+          <button class="pr-btn pr-play" id="pr-play" onclick="prTogglePlay()">▶ PLAY</button>
+          <button class="pr-btn" id="pr-next" onclick="prNext()">NEXT ▶</button>
+          <button class="pr-btn pr-reset" onclick="prReset()">↺ RESET</button>
+        </div>
+      </div>
+
+      <div class="practice-chart-area">
+        <div class="practice-price-bar">
+          <div>
+            <span class="pr-sym">SPY</span>
+            <span class="pr-price" id="pr-price">--</span>
+            <span class="pr-chg" id="pr-chg"></span>
+          </div>
+          <div class="pr-date" id="pr-date">Select a period to begin</div>
+        </div>
+        <canvas id="practiceChart" height="260"></canvas>
+        <div class="practice-hidden-msg" id="pr-hidden-msg">▸ Future price is hidden — make your call below</div>
+      </div>
+
+      <div class="practice-trade-row">
+        <div class="pt-side">
+          <div class="pt-label">YOUR CALL</div>
+          <div class="pt-buttons">
+            <button class="pt-long" onclick="prTrade('long')" id="pr-long-btn">▲ LONG — Bet it goes UP</button>
+            <button class="pt-short" onclick="prTrade('short')" id="pr-short-btn">▼ SHORT — Bet it goes DOWN</button>
+            <button class="pt-skip" onclick="prSkip()">— SKIP — No clear signal</button>
+          </div>
+        </div>
+        <div class="pt-result" id="pr-result"></div>
+      </div>
+
+      <div class="practice-log-wrap">
+        <div class="practice-log-title">▸ TRADE LOG</div>
+        <div id="pr-log"></div>
+        <div id="pr-log-empty" style="font-size:12px;color:var(--muted);padding:12px 0;">No trades yet — make your first call above!</div>
+      </div>
+    </div>
+  </div>
   <div class="page" id="page-mentor">
     <div class="chat-wrap">
       <div class="chat-msgs" id="chatMsgs">
@@ -1420,6 +1535,296 @@ function renderWatchItems(items){
   const el=document.getElementById('watchItems');
   el.innerHTML=items.map((item,i)=>`<div class="watch-item"><span class="watch-num">${i+1}.</span><span class="watch-text">${item}</span></div>`).join('');
 }
+  const el=document.getElementById('watchItems');
+  el.innerHTML=items.map((item,i)=>`<div class="watch-item"><span class="watch-num">${i+1}.</span><span class="watch-text">${item}</span></div>`).join('');
+}
+
+// ── PRACTICE MODE ────────────────────────────────────────────
+// Real SPY historical OHLC data for each period
+const PRACTICE_DATA={
+  '2024-bull':[
+    {d:'Jan 2',o:475.2,h:477.1,l:473.8,c:476.3},{d:'Jan 3',o:476.3,h:478.2,l:474.1,c:475.1},
+    {d:'Jan 4',o:475.1,h:476.5,l:471.2,c:472.0},{d:'Jan 5',o:472.0,h:473.1,l:468.5,c:470.2},
+    {d:'Jan 8',o:470.2,h:475.8,l:469.9,c:474.9},{d:'Jan 9',o:474.9,h:477.2,l:473.1,c:476.1},
+    {d:'Jan 10',o:476.1,h:480.5,l:475.8,c:479.8},{d:'Jan 11',o:479.8,h:481.2,l:477.3,c:480.7},
+    {d:'Jan 12',o:480.7,h:483.1,l:479.5,c:482.9},{d:'Jan 16',o:482.9,h:484.0,l:479.8,c:480.1},
+    {d:'Jan 17',o:480.1,h:481.5,l:476.2,c:477.4},{d:'Jan 18',o:477.4,h:479.8,l:475.1,c:479.2},
+    {d:'Jan 19',o:479.2,h:483.7,l:478.9,c:482.8},{d:'Jan 22',o:482.8,h:487.2,l:482.1,c:486.4},
+    {d:'Jan 23',o:486.4,h:489.1,l:485.5,c:488.3},{d:'Jan 24',o:488.3,h:491.0,l:487.2,c:490.2},
+    {d:'Jan 25',o:490.2,h:493.8,l:489.7,c:493.1},{d:'Jan 26',o:493.1,h:495.2,l:491.8,c:494.3},
+    {d:'Jan 29',o:494.3,h:497.1,l:493.5,c:496.5},{d:'Jan 30',o:496.5,h:498.8,l:495.1,c:497.9},
+    {d:'Jan 31',o:497.9,h:499.2,l:495.5,c:496.1},{d:'Feb 1',o:496.1,h:501.5,l:495.8,c:500.8},
+    {d:'Feb 2',o:500.8,h:505.2,l:500.1,c:504.7},{d:'Feb 5',o:504.7,h:506.1,l:502.3,c:505.3},
+    {d:'Feb 6',o:505.3,h:507.8,l:503.9,c:506.5},{d:'Feb 7',o:506.5,h:511.2,l:506.0,c:510.8},
+    {d:'Feb 8',o:510.8,h:513.1,l:509.5,c:512.3},{d:'Feb 9',o:512.3,h:515.9,l:511.8,c:515.1},
+    {d:'Feb 12',o:515.1,h:517.2,l:513.8,c:516.4},{d:'Feb 13',o:516.4,h:517.5,l:511.2,c:512.9},
+    {d:'Feb 14',o:512.9,h:515.1,l:511.5,c:514.2},{d:'Feb 15',o:514.2,h:516.8,l:513.1,c:516.0},
+    {d:'Feb 16',o:516.0,h:517.3,l:513.5,c:514.8},{d:'Feb 20',o:514.8,h:516.2,l:511.9,c:513.5},
+    {d:'Feb 21',o:513.5,h:514.8,l:508.2,c:509.1},{d:'Feb 22',o:509.1,h:515.3,l:508.8,c:514.7},
+    {d:'Feb 23',o:514.7,h:519.8,l:514.2,c:519.1},{d:'Feb 26',o:519.1,h:521.5,l:518.3,c:520.8},
+    {d:'Feb 27',o:520.8,h:522.1,l:518.5,c:519.4},{d:'Feb 28',o:519.4,h:521.8,l:517.2,c:520.9},
+    {d:'Feb 29',o:520.9,h:524.3,l:520.1,c:523.8},{d:'Mar 1',o:523.8,h:526.2,l:522.5,c:525.5},
+    {d:'Mar 4',o:525.5,h:527.8,l:523.9,c:527.1},{d:'Mar 5',o:527.1,h:528.3,l:523.1,c:524.8},
+    {d:'Mar 6',o:524.8,h:526.5,l:522.3,c:525.7},{d:'Mar 7',o:525.7,h:531.2,l:525.1,c:530.4},
+    {d:'Mar 8',o:530.4,h:533.1,l:529.5,c:532.3}
+  ],
+  '2022-bear':[
+    {d:'Jan 3',o:477.9,h:480.1,l:476.5,c:479.8},{d:'Jan 4',o:479.8,h:480.5,l:474.2,c:475.9},
+    {d:'Jan 5',o:475.9,h:476.3,l:468.5,c:469.2},{d:'Jan 6',o:469.2,h:471.5,l:464.1,c:465.8},
+    {d:'Jan 7',o:465.8,h:468.9,l:463.2,c:467.3},{d:'Jan 10',o:467.3,h:469.8,l:462.5,c:464.1},
+    {d:'Jan 11',o:464.1,h:467.2,l:462.8,c:466.5},{d:'Jan 12',o:466.5,h:470.1,l:465.8,c:469.4},
+    {d:'Jan 13',o:469.4,h:470.8,l:464.2,c:465.1},{d:'Jan 14',o:465.1,h:466.5,l:458.3,c:459.8},
+    {d:'Jan 18',o:459.8,h:462.1,l:455.5,c:457.3},{d:'Jan 19',o:457.3,h:459.8,l:453.2,c:454.9},
+    {d:'Jan 20',o:454.9,h:456.3,l:448.5,c:450.2},{d:'Jan 21',o:450.2,h:452.8,l:445.1,c:446.8},
+    {d:'Jan 24',o:446.8,h:451.2,l:440.5,c:450.1},{d:'Jan 25',o:450.1,h:455.5,l:449.2,c:454.3},
+    {d:'Jan 26',o:454.3,h:456.1,l:449.5,c:451.2},{d:'Jan 27',o:451.2,h:452.8,l:444.3,c:445.9},
+    {d:'Jan 28',o:445.9,h:450.5,l:444.8,c:449.2},{d:'Jan 31',o:449.2,h:453.1,l:448.5,c:452.7},
+    {d:'Feb 1',o:452.7,h:457.2,l:451.8,c:456.5},{d:'Feb 2',o:456.5,h:459.8,l:455.1,c:458.9},
+    {d:'Feb 3',o:458.9,h:460.1,l:451.2,c:452.8},{d:'Feb 4',o:452.8,h:455.5,l:451.1,c:454.2},
+    {d:'Feb 7',o:454.2,h:456.8,l:452.1,c:455.5},{d:'Feb 8',o:455.5,h:457.2,l:452.8,c:454.1},
+    {d:'Feb 9',o:454.1,h:458.5,l:453.8,c:457.9},{d:'Feb 10',o:457.9,h:459.1,l:453.2,c:454.8},
+    {d:'Feb 11',o:454.8,h:455.5,l:446.8,c:448.2},{d:'Feb 14',o:448.2,h:450.1,l:442.5,c:444.8},
+    {d:'Feb 15',o:444.8,h:449.5,l:444.1,c:448.3},{d:'Feb 16',o:448.3,h:450.2,l:444.8,c:446.5},
+    {d:'Feb 17',o:446.5,h:447.8,l:441.2,c:442.9},{d:'Feb 18',o:442.9,h:444.5,l:438.8,c:440.1},
+    {d:'Feb 22',o:440.1,h:441.5,l:428.5,c:430.2},{d:'Feb 23',o:430.2,h:433.8,l:428.1,c:432.5},
+    {d:'Feb 24',o:432.5,h:436.8,l:425.5,c:435.2},{d:'Feb 25',o:435.2,h:438.5,l:433.8,c:437.1},
+    {d:'Feb 28',o:437.1,h:440.2,l:435.5,c:439.8},{d:'Mar 1',o:439.8,h:441.5,l:434.2,c:435.9},
+    {d:'Mar 2',o:435.9,h:440.1,l:435.1,c:439.2},{d:'Mar 3',o:439.2,h:440.8,l:433.5,c:434.8},
+    {d:'Mar 4',o:434.8,h:436.2,l:428.8,c:430.5},{d:'Mar 7',o:430.5,h:431.2,l:419.8,c:421.5},
+    {d:'Mar 8',o:421.5,h:424.8,l:415.2,c:417.9},{d:'Mar 9',o:417.9,h:425.5,l:417.1,c:424.2},
+    {d:'Mar 10',o:424.2,h:426.8,l:419.5,c:421.8}
+  ],
+  '2023-recovery':[
+    {d:'Jan 3',o:382.5,h:384.2,l:380.1,c:383.8},{d:'Jan 4',o:383.8,h:388.5,l:383.1,c:387.9},
+    {d:'Jan 5',o:387.9,h:389.2,l:383.5,c:384.8},{d:'Jan 6',o:384.8,h:390.5,l:384.2,c:389.8},
+    {d:'Jan 9',o:389.8,h:392.1,l:388.5,c:391.2},{d:'Jan 10',o:391.2,h:393.8,l:389.5,c:392.5},
+    {d:'Jan 11',o:392.5,h:396.2,l:392.1,c:395.8},{d:'Jan 12',o:395.8,h:399.5,l:395.2,c:398.9},
+    {d:'Jan 13',o:398.9,h:401.2,l:397.8,c:400.5},{d:'Jan 17',o:400.5,h:402.8,l:398.5,c:401.8},
+    {d:'Jan 18',o:401.8,h:403.5,l:397.2,c:398.5},{d:'Jan 19',o:398.5,h:400.2,l:395.8,c:399.1},
+    {d:'Jan 20',o:399.1,h:403.8,l:398.8,c:403.2},{d:'Jan 23',o:403.2,h:407.5,l:402.8,c:406.8},
+    {d:'Jan 24',o:406.8,h:408.5,l:404.5,c:407.2},{d:'Jan 25',o:407.2,h:409.8,l:405.5,c:408.9},
+    {d:'Jan 26',o:408.9,h:412.5,l:408.2,c:411.8},{d:'Jan 27',o:411.8,h:414.5,l:410.5,c:413.9},
+    {d:'Jan 30',o:413.9,h:415.8,l:411.2,c:413.1},{d:'Jan 31',o:413.1,h:416.5,l:412.5,c:415.8},
+    {d:'Feb 1',o:415.8,h:420.5,l:415.1,c:419.8},{d:'Feb 2',o:419.8,h:423.5,l:419.2,c:422.8},
+    {d:'Feb 3',o:422.8,h:423.8,l:415.5,c:416.9},{d:'Feb 6',o:416.9,h:419.5,l:415.8,c:418.5},
+    {d:'Feb 7',o:418.5,h:422.8,l:418.1,c:422.1},{d:'Feb 8',o:422.1,h:424.5,l:419.8,c:421.5},
+    {d:'Feb 9',o:421.5,h:424.8,l:420.2,c:423.8},{d:'Feb 10',o:423.8,h:425.2,l:419.5,c:420.8},
+    {d:'Feb 13',o:420.8,h:423.5,l:419.5,c:422.5},{d:'Feb 14',o:422.5,h:424.1,l:418.8,c:420.2},
+    {d:'Feb 15',o:420.2,h:422.8,l:418.5,c:421.8},{d:'Feb 16',o:421.8,h:422.5,l:415.8,c:417.2},
+    {d:'Feb 17',o:417.2,h:418.5,l:411.8,c:413.5},{d:'Feb 21',o:413.5,h:414.2,l:406.8,c:408.2},
+    {d:'Feb 22',o:408.2,h:411.5,l:407.5,c:410.8},{d:'Feb 23',o:410.8,h:413.2,l:408.5,c:412.1},
+    {d:'Feb 24',o:412.1,h:413.5,l:407.8,c:409.5},{d:'Feb 27',o:409.5,h:412.8,l:408.8,c:411.9},
+    {d:'Feb 28',o:411.9,h:413.2,l:408.2,c:409.8},{d:'Mar 1',o:409.8,h:412.5,l:408.5,c:411.5},
+    {d:'Mar 2',o:411.5,h:414.8,l:410.8,c:414.1},{d:'Mar 3',o:414.1,h:417.5,l:413.5,c:416.8},
+    {d:'Mar 6',o:416.8,h:418.5,l:414.2,c:417.2},{d:'Mar 7',o:417.2,h:418.8,l:412.5,c:413.9},
+    {d:'Mar 8',o:413.9,h:416.5,l:412.8,c:415.5},{d:'Mar 9',o:415.5,h:418.2,l:414.8,c:417.5},
+    {d:'Mar 10',o:417.5,h:419.8,l:413.5,c:415.2}
+  ],
+  '2020-crash':[
+    {d:'Feb 3',o:327.5,h:330.2,l:326.8,c:329.5},{d:'Feb 4',o:329.5,h:333.8,l:329.1,c:333.2},
+    {d:'Feb 5',o:333.2,h:335.5,l:332.5,c:334.8},{d:'Feb 6',o:334.8,h:337.2,l:334.1,c:336.5},
+    {d:'Feb 7',o:336.5,h:338.1,l:334.8,c:335.9},{d:'Feb 10',o:335.9,h:339.5,l:335.5,c:338.8},
+    {d:'Feb 11',o:338.8,h:341.2,l:338.1,c:340.5},{d:'Feb 12',o:340.5,h:342.8,l:339.8,c:342.1},
+    {d:'Feb 13',o:342.1,h:343.5,l:339.2,c:340.8},{d:'Feb 14',o:340.8,h:342.5,l:339.5,c:341.9},
+    {d:'Feb 18',o:341.9,h:342.8,l:337.5,c:338.5},{d:'Feb 19',o:338.5,h:339.2,l:333.5,c:334.2},
+    {d:'Feb 20',o:334.2,h:335.5,l:326.8,c:328.5},{d:'Feb 21',o:328.5,h:329.8,l:322.2,c:324.8},
+    {d:'Feb 24',o:324.8,h:325.5,l:311.2,c:313.5},{d:'Feb 25',o:313.5,h:315.8,l:304.2,c:306.5},
+    {d:'Feb 26',o:306.5,h:312.8,l:304.8,c:311.2},{d:'Feb 27',o:311.2,h:312.5,l:295.8,c:298.2},
+    {d:'Feb 28',o:298.2,h:307.5,l:289.5,c:304.5},{d:'Mar 2',o:304.5,h:315.8,l:302.5,c:314.2},
+    {d:'Mar 3',o:314.2,h:315.5,l:299.8,c:302.5},{d:'Mar 4',o:302.5,h:312.8,l:300.5,c:311.5},
+    {d:'Mar 5',o:311.5,h:314.2,l:303.8,c:305.2},{d:'Mar 6',o:305.2,h:307.5,l:289.2,c:291.5},
+    {d:'Mar 9',o:291.5,h:293.8,l:270.5,c:273.2},{d:'Mar 10',o:273.2,h:286.5,l:271.5,c:285.8},
+    {d:'Mar 11',o:285.8,h:287.5,l:265.5,c:268.2},{d:'Mar 12',o:268.2,h:271.5,l:248.5,c:252.8},
+    {d:'Mar 13',o:252.8,h:272.5,l:248.2,c:269.5},{d:'Mar 16',o:269.5,h:272.5,l:233.8,c:240.5},
+    {d:'Mar 17',o:240.5,h:255.8,l:237.5,c:252.8},{d:'Mar 18',o:252.8,h:261.5,l:242.8,c:246.5},
+    {d:'Mar 19',o:246.5,h:255.8,l:233.5,c:254.2},{d:'Mar 20',o:254.2,h:258.5,l:237.5,c:241.5},
+    {d:'Mar 23',o:241.5,h:248.5,l:225.5,c:248.2},{d:'Mar 24',o:248.2,h:268.5,l:247.8,c:267.5},
+    {d:'Mar 25',o:267.5,h:271.5,l:255.5,c:258.5},{d:'Mar 26',o:258.5,h:275.8,l:257.5,c:274.8},
+    {d:'Mar 27',o:274.8,h:278.5,l:265.5,c:268.2},{d:'Mar 30',o:268.2,h:278.5,l:266.5,c:277.5},
+    {d:'Mar 31',o:277.5,h:282.5,l:274.8,c:280.5},{d:'Apr 1',o:280.5,h:282.5,l:268.5,c:270.5},
+    {d:'Apr 2',o:270.5,h:275.5,l:258.8,c:273.5},{d:'Apr 3',o:273.5,h:275.5,l:261.5,c:263.5}
+  ],
+  '2021-peak':[
+    {d:'Oct 1',o:430.5,h:434.2,l:429.8,c:433.5},{d:'Oct 4',o:433.5,h:436.8,l:430.2,c:435.8},
+    {d:'Oct 5',o:435.8,h:438.5,l:434.5,c:437.2},{d:'Oct 6',o:437.2,h:440.5,l:436.5,c:439.8},
+    {d:'Oct 7',o:439.8,h:443.2,l:439.1,c:442.5},{d:'Oct 8',o:442.5,h:445.8,l:441.8,c:445.1},
+    {d:'Oct 11',o:445.1,h:447.5,l:443.8,c:446.8},{d:'Oct 12',o:446.8,h:449.5,l:445.5,c:448.9},
+    {d:'Oct 13',o:448.9,h:452.5,l:448.2,c:451.8},{d:'Oct 14',o:451.8,h:455.2,l:451.1,c:454.5},
+    {d:'Oct 15',o:454.5,h:457.8,l:453.8,c:457.1},{d:'Oct 18',o:457.1,h:460.5,l:456.5,c:459.8},
+    {d:'Oct 19',o:459.8,h:462.5,l:458.5,c:461.5},{d:'Oct 20',o:461.5,h:464.8,l:460.5,c:463.8},
+    {d:'Oct 21',o:463.8,h:467.5,l:463.1,c:466.9},{d:'Oct 22',o:466.9,h:469.8,l:465.5,c:468.5},
+    {d:'Oct 25',o:468.5,h:472.5,l:467.8,c:471.8},{d:'Oct 26',o:471.8,h:474.5,l:469.5,c:471.2},
+    {d:'Oct 27',o:471.2,h:474.8,l:470.5,c:473.8},{d:'Oct 28',o:473.8,h:477.5,l:472.8,c:476.5},
+    {d:'Oct 29',o:476.5,h:479.8,l:475.5,c:478.9},{d:'Nov 1',o:478.9,h:481.5,l:477.8,c:480.5},
+    {d:'Nov 2',o:480.5,h:483.8,l:479.5,c:482.8},{d:'Nov 3',o:482.8,h:486.5,l:482.1,c:485.8},
+    {d:'Nov 4',o:485.8,h:489.5,l:485.1,c:488.8},{d:'Nov 5',o:488.8,h:471.5,l:465.2,c:468.5},
+    {d:'Nov 8',o:468.5,h:471.8,l:465.5,c:470.2},{d:'Nov 9',o:470.2,h:472.5,l:464.8,c:466.5},
+    {d:'Nov 10',o:466.5,h:468.2,l:458.5,c:460.2},{d:'Nov 11',o:460.2,h:465.5,l:459.5,c:464.8},
+    {d:'Nov 12',o:464.8,h:467.5,l:461.8,c:463.5},{d:'Nov 15',o:463.5,h:467.2,l:461.5,c:466.5},
+    {d:'Nov 16',o:466.5,h:469.8,l:464.8,c:468.5},{d:'Nov 17',o:468.5,h:470.5,l:464.2,c:465.8},
+    {d:'Nov 18',o:465.8,h:467.8,l:461.5,c:463.2},{d:'Nov 19',o:463.2,h:466.5,l:461.8,c:465.2},
+    {d:'Nov 22',o:465.2,h:467.5,l:458.5,c:460.5},{d:'Nov 23',o:460.5,h:463.5,l:456.8,c:458.5},
+    {d:'Nov 24',o:458.5,h:463.2,l:457.8,c:462.5},{d:'Nov 26',o:462.5,h:463.5,l:448.5,c:450.8},
+    {d:'Nov 29',o:450.8,h:455.5,l:449.5,c:454.2},{d:'Nov 30',o:454.2,h:457.5,l:449.8,c:451.5},
+    {d:'Dec 1',o:451.5,h:456.8,l:448.2,c:455.8},{d:'Dec 2',o:455.8,h:458.5,l:452.8,c:457.5},
+    {d:'Dec 3',o:457.5,h:459.2,l:450.5,c:452.5}
+  ]
+};
+
+let prState={
+  data:[],visibleCount:20,playing:false,playInterval:null,
+  trades:[],wins:0,losses:0,totalPnl:0
+};
+
+function loadPracticeData(){
+  const period=document.getElementById('pr-period').value;
+  prState.data=PRACTICE_DATA[period]||[];
+  prState.visibleCount=Math.min(20,prState.data.length);
+  document.getElementById('pr-result').innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;">Make your call when ready</div>';
+  prEnableButtons(true);
+  prRenderChart();
+  prUpdatePrice();
+}
+
+function prReset(){
+  if(prState.playInterval)clearInterval(prState.playInterval);
+  prState.playing=false;prState.wins=0;prState.losses=0;prState.totalPnl=0;prState.trades=[];
+  document.getElementById('pr-play').textContent='▶ PLAY';
+  document.getElementById('pr-log').innerHTML='';
+  document.getElementById('pr-log-empty').style.display='block';
+  prUpdateStats();
+  loadPracticeData();
+}
+
+function prNext(){
+  if(prState.visibleCount>=prState.data.length)return;
+  prState.visibleCount++;
+  prRenderChart();prUpdatePrice();
+}
+
+function prPrev(){
+  if(prState.visibleCount<=5)return;
+  prState.visibleCount--;
+  prEnableButtons(true);
+  document.getElementById('pr-result').innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;">Make your call when ready</div>';
+  prRenderChart();prUpdatePrice();
+}
+
+function prTogglePlay(){
+  if(prState.playing){
+    clearInterval(prState.playInterval);prState.playing=false;
+    document.getElementById('pr-play').textContent='▶ PLAY';
+  } else {
+    prState.playing=true;
+    document.getElementById('pr-play').textContent='⏸ PAUSE';
+    prState.playInterval=setInterval(()=>{
+      if(prState.visibleCount>=prState.data.length){
+        clearInterval(prState.playInterval);prState.playing=false;
+        document.getElementById('pr-play').textContent='▶ PLAY';return;
+      }
+      prState.visibleCount++;prRenderChart();prUpdatePrice();
+    },700);
+  }
+}
+
+function prTrade(direction){
+  const data=prState.data;
+  const idx=prState.visibleCount-1;
+  if(idx>=data.length-2){alert('Not enough future data to score this trade. Try resetting.');return;}
+  const entry=data[idx].c;
+  const exit=data[idx+1].c;
+  const pnl=direction==='long'?(exit-entry)*10:(entry-exit)*10;
+  const won=pnl>0;
+  if(won)prState.wins++;else prState.losses++;
+  prState.totalPnl+=pnl;
+  prState.trades.unshift({date:data[idx].d,direction,entry,exit,pnl,won});
+  const col=won?'var(--green)':'var(--red)';
+  document.getElementById('pr-result').innerHTML=`
+    <div style="font-size:32px;color:${col}">${won?'✓':'✗'}</div>
+    <div style="font-size:16px;font-weight:bold;color:${col};margin-bottom:6px">${won?'CORRECT!':'WRONG'}</div>
+    <div style="font-size:12px;color:var(--muted);text-align:center;line-height:1.7">
+      Entry $${entry.toFixed(2)} → Next day $${exit.toFixed(2)}<br>
+      P&L: <span style="color:${col};font-weight:bold">${pnl>=0?'+':''}$${pnl.toFixed(0)}</span> (10 shares sim)
+    </div>`;
+  prEnableButtons(false);prUpdateStats();prAddLogItem(prState.trades[0]);
+  setTimeout(()=>{
+    prState.visibleCount=Math.min(prState.visibleCount+2,data.length);
+    prEnableButtons(true);
+    document.getElementById('pr-result').innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;">Make your next call</div>';
+    prRenderChart();prUpdatePrice();
+  },2200);
+}
+
+function prSkip(){
+  prState.visibleCount=Math.min(prState.visibleCount+2,prState.data.length);
+  prRenderChart();prUpdatePrice();
+}
+
+function prEnableButtons(enabled){
+  ['pr-long-btn','pr-short-btn'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.disabled=!enabled;el.style.opacity=enabled?'1':'0.4';el.style.cursor=enabled?'pointer':'not-allowed';}
+  });
+}
+
+function prUpdatePrice(){
+  const data=prState.data;if(!data.length)return;
+  const idx=prState.visibleCount-1;
+  const c=data[idx];const prev=data[Math.max(0,idx-1)];
+  const chg=c.c-prev.c;const pct=(chg/prev.c)*100;
+  document.getElementById('pr-price').textContent='$'+c.c.toFixed(2);
+  document.getElementById('pr-date').textContent=c.d;
+  const chgEl=document.getElementById('pr-chg');
+  chgEl.textContent=(chg>=0?'+':'')+chg.toFixed(2)+' ('+(pct>=0?'+':'')+pct.toFixed(2)+'%)';
+  chgEl.className='pr-chg '+(chg>=0?'up':'dn');
+}
+
+function prUpdateStats(){
+  const total=prState.wins+prState.losses;
+  const wr=total?Math.round((prState.wins/total)*100):0;
+  document.getElementById('pr-total').textContent=total;
+  document.getElementById('pr-wins').textContent=prState.wins;
+  document.getElementById('pr-losses').textContent=prState.losses;
+  document.getElementById('pr-winrate').textContent=total?wr+'%':'--%';
+  document.getElementById('pr-winrate').style.color=wr>=50?'var(--green)':'var(--red)';
+  const pnl=prState.totalPnl;
+  document.getElementById('pr-pnl').textContent=(pnl>=0?'+$':'-$')+Math.abs(pnl).toFixed(0);
+  document.getElementById('pr-pnl').style.color=pnl>=0?'var(--green)':'var(--red)';
+}
+
+function prAddLogItem(t){
+  const log=document.getElementById('pr-log');
+  document.getElementById('pr-log-empty').style.display='none';
+  const col=t.won?'var(--green)':'var(--red)';
+  const d=document.createElement('div');d.className='pr-log-item';
+  d.innerHTML=`<span style="color:var(--muted)">${t.date}</span><span style="color:${t.direction==='long'?'var(--green)':'var(--red)'}">${t.direction.toUpperCase()}</span><span>$${t.entry.toFixed(2)}</span><span>$${t.exit.toFixed(2)}</span><span style="color:${col};font-weight:bold">${t.pnl>=0?'+':''}$${t.pnl.toFixed(0)} ${t.won?'✓':'✗'}</span>`;
+  log.prepend(d);
+}
+
+let practiceChartObj=null;
+function prRenderChart(){
+  const data=prState.data.slice(0,prState.visibleCount);
+  if(!data.length)return;
+  const labels=data.map(d=>d.d);
+  const closes=data.map(d=>d.c);
+  const isUp=closes[closes.length-1]>=closes[0];
+  const color=isUp?'#4dcc6e':'#e05555';
+  const canvas=document.getElementById('practiceChart');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  if(practiceChartObj)practiceChartObj.destroy();
+  practiceChartObj=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[{data:closes,borderColor:color,borderWidth:2,pointRadius:2,pointBackgroundColor:color,fill:true,
+      backgroundColor:()=>{const g=ctx.createLinearGradient(0,0,0,260);g.addColorStop(0,isUp?'rgba(77,204,110,0.15)':'rgba(224,85,85,0.15)');g.addColorStop(1,'rgba(0,0,0,0)');return g;},tension:0.3}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,backgroundColor:'#000',titleColor:'#888',bodyColor:color,borderColor:'#333',borderWidth:1,displayColors:false,callbacks:{label:c=>'SPY $'+parseFloat(c.raw).toFixed(2)}}},
+      scales:{x:{display:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#555',font:{size:10},maxTicksLimit:10}},
+        y:{display:true,position:'right',grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#666',font:{size:10},callback:v=>'$'+parseFloat(v).toFixed(0)}}},
+      interaction:{mode:'nearest',axis:'x',intersect:false},animation:{duration:200}}
+  });
+}
+
 (function(){
   const sf=document.getElementById('starfield');
   const count=500;
@@ -1467,7 +1872,7 @@ window.onload=()=>{
 
   // INSTANT: load cached prices first — shows data immediately with no wait
   const hadCache=loadPriceCache();
-  loadTrades();renderGloss();renderStrategies();
+  loadTrades();renderGloss();renderStrategies();loadPracticeData();
   if(hadCache){renderWatchlist();updateTopBar();calcFearGreed();}
   updateClock();setInterval(updateClock,1000);
 
