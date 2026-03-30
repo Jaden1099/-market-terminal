@@ -20,10 +20,25 @@
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-    /* TICKER */
-    .ticker-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 0; overflow: hidden; position: sticky; top: 0; z-index: 100; }
-    .ticker-track { display: flex; gap: 40px; animation: ticker 50s linear infinite; white-space: nowrap; width: max-content; }
-    .ticker-track:hover { animation-play-state: paused; }
+    /* TICKER — FIXED */
+    .ticker-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 0;
+      overflow: hidden;
+      position: relative;
+      top: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .ticker-track {
+      display: flex;
+      gap: 40px;
+      animation: ticker 50s linear infinite;
+      white-space: nowrap;
+      width: max-content;
+      pointer-events: none;
+    }
     @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
     .ticker-item { display: flex; gap: 8px; align-items: center; font-size: 0.85em; }
     .ticker-symbol { font-weight: 600; }
@@ -32,14 +47,24 @@
     .down { color: var(--red) !important; }
 
     /* LAYOUT */
-    .topbar { padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+    .topbar { padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); position: relative; z-index: 2; }
     .topbar h1 { font-size: 1.3em; font-weight: 700; }
     .topbar-right { display: flex; gap: 10px; align-items: center; }
     .time-display { font-size: 0.85em; color: var(--muted); }
     .mode-badge { background: var(--accent); color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.75em; font-weight: 600; }
-    .main { padding: 24px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; max-width: 1600px; margin: 0 auto; }
-    @media(max-width: 1100px) { .main { grid-template-columns: 1fr 1fr; } }
-    @media(max-width: 700px) { .main { grid-template-columns: 1fr; } }
+
+    /* NAV */
+    .nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; gap: 4px; overflow-x: auto; position: relative; z-index: 2; }
+    .nav-btn { padding: 12px 16px; font-size: 0.82em; font-weight: 500; color: var(--muted); border: none; background: transparent; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; font-family: inherit; }
+    .nav-btn:hover { color: var(--text); }
+    .nav-btn.active { color: var(--text); border-bottom-color: var(--accent); }
+
+    /* SECTIONS */
+    .section { display: none; padding: 24px; max-width: 1600px; margin: 0 auto; position: relative; z-index: 2; }
+    .section.active { display: block; }
+    .section-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+    @media(max-width: 1100px) { .section-grid { grid-template-columns: 1fr 1fr; } }
+    @media(max-width: 700px) { .section-grid { grid-template-columns: 1fr; } }
 
     /* CARDS */
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
@@ -58,7 +83,6 @@
 
     /* FEAR & GREED */
     .fg-container { display: flex; flex-direction: column; align-items: center; gap: 12px; }
-    .fg-gauge { width: 160px; height: 80px; position: relative; }
     .fg-score { font-size: 3em; font-weight: 700; }
     .fg-label { font-size: 1em; color: var(--muted); }
 
@@ -147,19 +171,6 @@
     .tab { flex: 1; padding: 7px; text-align: center; border-radius: 6px; cursor: pointer; font-size: 0.82em; font-weight: 500; color: var(--muted); transition: all 0.2s; border: none; background: transparent; }
     .tab.active { background: var(--card); color: var(--text); }
 
-    /* SECTION NAV */
-    .nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; gap: 4px; overflow-x: auto; }
-    .nav-btn { padding: 12px 16px; font-size: 0.82em; font-weight: 500; color: var(--muted); border: none; background: transparent; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; font-family: inherit; }
-    .nav-btn:hover { color: var(--text); }
-    .nav-btn.active { color: var(--text); border-bottom-color: var(--accent); }
-
-    /* SECTIONS */
-    .section { display: none; padding: 24px; max-width: 1600px; margin: 0 auto; }
-    .section.active { display: block; }
-    .section-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
-    @media(max-width: 1100px) { .section-grid { grid-template-columns: 1fr 1fr; } }
-    @media(max-width: 700px) { .section-grid { grid-template-columns: 1fr; } }
-
     /* LOADING SPINNER */
     .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -185,7 +196,6 @@
     <span class="ticker-item"><span class="ticker-symbol">ETH</span><span class="ticker-price" id="t-ETH">--</span><span class="ticker-change" id="tc-ETH">--</span></span>
     <span class="ticker-item"><span class="ticker-symbol">GOLD</span><span class="ticker-price" id="t-GOLD">--</span><span class="ticker-change" id="tc-GOLD">--</span></span>
     <span class="ticker-item"><span class="ticker-symbol">OIL</span><span class="ticker-price" id="t-OIL">--</span><span class="ticker-change" id="tc-OIL">--</span></span>
-    <!-- duplicated for seamless loop -->
     <span class="ticker-item"><span class="ticker-symbol">SPY</span><span class="ticker-price" id="t-SPY2">--</span><span class="ticker-change" id="tc-SPY2">--</span></span>
     <span class="ticker-item"><span class="ticker-symbol">QQQ</span><span class="ticker-price" id="t-QQQ2">--</span><span class="ticker-change" id="tc-QQQ2">--</span></span>
     <span class="ticker-item"><span class="ticker-symbol">AAPL</span><span class="ticker-price" id="t-AAPL2">--</span><span class="ticker-change" id="tc-AAPL2">--</span></span>
@@ -208,94 +218,60 @@
 
 <!-- NAV -->
 <nav class="nav">
-  <button class="nav-btn active" onclick="showSection('dashboard')">Dashboard</button>
-  <button class="nav-btn" onclick="showSection('prices')">Live Prices</button>
-  <button class="nav-btn" onclick="showSection('paper')">Paper Trading</button>
-  <button class="nav-btn" onclick="showSection('practice')">SPY Practice</button>
-  <button class="nav-btn" onclick="showSection('analyzer')">Analyzer</button>
-  <button class="nav-btn" onclick="showSection('learn')">Learn</button>
-  <button class="nav-btn" onclick="showSection('chat')">AI Mentor</button>
-  <button class="nav-btn" onclick="showSection('settings')">⚙️ Settings</button>
+  <button class="nav-btn active" onclick="showSection('dashboard', this)">Dashboard</button>
+  <button class="nav-btn" onclick="showSection('prices', this)">Live Prices</button>
+  <button class="nav-btn" onclick="showSection('paper', this)">Paper Trading</button>
+  <button class="nav-btn" onclick="showSection('practice', this)">SPY Practice</button>
+  <button class="nav-btn" onclick="showSection('analyzer', this)">Analyzer</button>
+  <button class="nav-btn" onclick="showSection('learn', this)">Learn</button>
+  <button class="nav-btn" onclick="showSection('chat', this)">AI Mentor</button>
+  <button class="nav-btn" onclick="showSection('settings', this)">⚙️ Settings</button>
 </nav>
 
-<!-- ═══════════════════════════════════════════ -->
 <!-- DASHBOARD -->
-<!-- ═══════════════════════════════════════════ -->
 <div class="section active" id="sec-dashboard">
   <div class="section-grid">
-
-    <!-- AI BRIEFING -->
     <div class="card span-2">
       <div class="card-title">🤖 AI Market Briefing</div>
-      <div id="briefingText" class="briefing-text loading">
-        <span class="spinner"></span> Loading your daily briefing — add your Anthropic key in Settings to activate.
-      </div>
+      <div id="briefingText" class="briefing-text loading"><span class="spinner"></span> Loading your daily briefing — add your Anthropic key in Settings to activate.</div>
       <button class="secondary" style="margin-top:14px; font-size:0.8em;" onclick="loadBriefing()">↻ Refresh Briefing</button>
     </div>
-
-    <!-- FEAR & GREED -->
     <div class="card">
       <div class="card-title">😱 Fear &amp; Greed Index</div>
       <div class="fg-container">
         <canvas id="fgCanvas" width="200" height="110"></canvas>
-        <div id="fgScore" class="fg-score" style="color: var(--yellow);">--</div>
+        <div id="fgScore" class="fg-score" style="color:var(--yellow);">--</div>
         <div id="fgLabel" class="fg-label">Calculating...</div>
       </div>
     </div>
-
-    <!-- WATCHLIST -->
     <div class="card">
       <div class="card-title">👁 What To Watch Today</div>
-      <div class="watchlist-item">
-        <div><div class="watch-symbol">BTC</div><div class="watch-note">Crypto leading sentiment</div></div>
-        <div class="watch-price"><div id="w-BTC">--</div></div>
-      </div>
-      <div class="watchlist-item">
-        <div><div class="watch-symbol">SPY</div><div class="watch-note">Broad market direction</div></div>
-        <div class="watch-price"><div id="w-SPY">--</div></div>
-      </div>
-      <div class="watchlist-item">
-        <div><div class="watch-symbol">NVDA</div><div class="watch-note">AI sector bellwether</div></div>
-        <div class="watch-price"><div id="w-NVDA">--</div></div>
-      </div>
-      <div class="watchlist-item">
-        <div><div class="watch-symbol">GOLD</div><div class="watch-note">Risk-off indicator</div></div>
-        <div class="watch-price"><div id="w-GOLD">--</div></div>
-      </div>
-      <div class="watchlist-item">
-        <div><div class="watch-symbol">OIL</div><div class="watch-note">Macro inflation signal</div></div>
-        <div class="watch-price"><div id="w-OIL">--</div></div>
-      </div>
+      <div class="watchlist-item"><div><div class="watch-symbol">BTC</div><div class="watch-note">Crypto leading sentiment</div></div><div class="watch-price"><div id="w-BTC">--</div></div></div>
+      <div class="watchlist-item"><div><div class="watch-symbol">SPY</div><div class="watch-note">Broad market direction</div></div><div class="watch-price"><div id="w-SPY">--</div></div></div>
+      <div class="watchlist-item"><div><div class="watch-symbol">NVDA</div><div class="watch-note">AI sector bellwether</div></div><div class="watch-price"><div id="w-NVDA">--</div></div></div>
+      <div class="watchlist-item"><div><div class="watch-symbol">GOLD</div><div class="watch-note">Risk-off indicator</div></div><div class="watch-price"><div id="w-GOLD">--</div></div></div>
+      <div class="watchlist-item"><div><div class="watch-symbol">OIL</div><div class="watch-note">Macro inflation signal</div></div><div class="watch-price"><div id="w-OIL">--</div></div></div>
     </div>
-
-    <!-- MARKET NEWS -->
     <div class="card span-2">
       <div class="card-title">📰 Market News</div>
-      <div id="newsContainer">
-        <div class="news-item"><div class="news-headline" style="color:var(--muted);">Add your Twelve Data key in Settings to load live news.</div></div>
-      </div>
+      <div id="newsContainer"><div class="news-item"><div class="news-headline" style="color:var(--muted);">Add your Twelve Data key in Settings to load live news.</div></div></div>
     </div>
-
-    <!-- MARKET MOOD -->
     <div class="card">
       <div class="card-title">🌡 Market Mood</div>
-      <div id="moodDisplay" style="text-align:center; padding: 20px 0;">
-        <div style="font-size: 3em; margin-bottom: 8px;" id="moodEmoji">🤔</div>
-        <div style="font-size: 1.1em; font-weight: 600;" id="moodText">Analyzing...</div>
-        <div style="font-size: 0.82em; color: var(--muted); margin-top: 8px;" id="moodSub"></div>
+      <div style="text-align:center; padding:20px 0;">
+        <div style="font-size:3em; margin-bottom:8px;" id="moodEmoji">🤔</div>
+        <div style="font-size:1.1em; font-weight:600;" id="moodText">Analyzing...</div>
+        <div style="font-size:0.82em; color:var(--muted); margin-top:8px;" id="moodSub"></div>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════ -->
 <!-- LIVE PRICES -->
-<!-- ═══════════════════════════════════════════ -->
 <div class="section" id="sec-prices">
-  <div class="card" style="margin-bottom:20px;">
+  <div class="card">
     <div class="card-title">📊 Live Market Prices</div>
-    <div class="prices-grid" id="pricesGrid">
+    <div class="prices-grid">
       <div class="price-card"><div class="price-symbol">SPY</div><div class="price-value" id="p-SPY">--</div><div class="price-change" id="pc-SPY">--</div></div>
       <div class="price-card"><div class="price-symbol">QQQ</div><div class="price-value" id="p-QQQ">--</div><div class="price-change" id="pc-QQQ">--</div></div>
       <div class="price-card"><div class="price-symbol">AAPL</div><div class="price-value" id="p-AAPL">--</div><div class="price-change" id="pc-AAPL">--</div></div>
@@ -309,64 +285,38 @@
       <div class="price-card"><div class="price-symbol">GOLD</div><div class="price-value" id="p-GOLD">--</div><div class="price-change" id="pc-GOLD">--</div></div>
       <div class="price-card"><div class="price-symbol">OIL</div><div class="price-value" id="p-OIL">--</div><div class="price-change" id="pc-OIL">--</div></div>
     </div>
-    <div style="margin-top:14px; font-size:0.78em; color:var(--muted);">Auto-refreshes every 60 seconds. Last update: <span id="lastUpdate">--</span></div>
+    <div style="margin-top:14px; font-size:0.78em; color:var(--muted);">Auto-refreshes every 60s. Last update: <span id="lastUpdate">--</span></div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════ -->
 <!-- PAPER TRADING -->
-<!-- ═══════════════════════════════════════════ -->
 <div class="section" id="sec-paper">
-  <div class="card" style="margin-bottom:20px;">
+  <div class="card">
     <div class="card-title">💼 Paper Trading Tracker</div>
     <div class="trade-stats">
-      <div class="trade-stat">
-        <div class="trade-stat-value" id="ptPnl" style="color:var(--green);">$0.00</div>
-        <div class="trade-stat-label">Total P&amp;L</div>
-      </div>
-      <div class="trade-stat">
-        <div class="trade-stat-value" id="ptWins">0/0</div>
-        <div class="trade-stat-label">Win / Loss</div>
-      </div>
-      <div class="trade-stat">
-        <div class="trade-stat-value" id="ptOpenRate">0%</div>
-        <div class="trade-stat-label">Win Rate</div>
-      </div>
+      <div class="trade-stat"><div class="trade-stat-value" id="ptPnl" style="color:var(--green);">$0.00</div><div class="trade-stat-label">Total P&amp;L</div></div>
+      <div class="trade-stat"><div class="trade-stat-value" id="ptWins">0/0</div><div class="trade-stat-label">Win / Loss</div></div>
+      <div class="trade-stat"><div class="trade-stat-value" id="ptOpenRate">0%</div><div class="trade-stat-label">Win Rate</div></div>
     </div>
-
     <div class="trade-form">
-      <input id="ptSymbol" type="text" placeholder="Symbol (e.g. SPY)" style="width:120px;" />
-      <select id="ptDirection">
-        <option value="LONG">🟢 LONG</option>
-        <option value="SHORT">🔴 SHORT</option>
-      </select>
+      <input id="ptSymbol" type="text" placeholder="Symbol e.g. SPY" style="width:120px;" />
+      <select id="ptDirection"><option value="LONG">🟢 LONG</option><option value="SHORT">🔴 SHORT</option></select>
       <input id="ptShares" type="number" placeholder="Shares" value="100" style="width:90px;" />
       <input id="ptEntry" type="number" placeholder="Entry $" style="width:100px;" step="0.01" />
       <button class="green" onclick="openTrade()">Open Trade</button>
     </div>
-
     <table class="trade-table">
-      <thead>
-        <tr>
-          <th>#</th><th>Symbol</th><th>Direction</th><th>Shares</th>
-          <th>Entry</th><th>Exit</th><th>P&amp;L</th><th>Status</th><th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="tradeTableBody">
-        <tr><td colspan="9" style="color:var(--muted); text-align:center; padding:20px;">No trades yet. Open your first position above.</td></tr>
-      </tbody>
+      <thead><tr><th>#</th><th>Symbol</th><th>Direction</th><th>Shares</th><th>Entry</th><th>Exit</th><th>P&amp;L</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="tradeTableBody"><tr><td colspan="9" style="color:var(--muted); text-align:center; padding:20px;">No trades yet.</td></tr></tbody>
     </table>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════ -->
 <!-- SPY PRACTICE -->
-<!-- ═══════════════════════════════════════════ -->
 <div class="section" id="sec-practice">
   <div class="card">
     <div class="card-title">🧠 SPY Historical Practice Mode</div>
     <p style="font-size:0.85em; color:var(--muted); margin-bottom:16px;">Practice reading real SPY charts. Scroll to zoom, drag to pan. Future price is hidden.</p>
-
     <div class="practice-controls">
       <select id="practiceInterval">
         <option value="1min">1 Minute</option>
@@ -384,25 +334,17 @@
       <button onclick="loadPracticeChart()">Load Chart</button>
       <button class="secondary" onclick="practiceChart && practiceChart.resetZoom()">Reset Zoom</button>
     </div>
-
-    <div class="chart-wrap">
-      <canvas id="practiceChartCanvas"></canvas>
-    </div>
-
+    <div class="chart-wrap"><canvas id="practiceChartCanvas"></canvas></div>
     <div class="practice-stats">
       <div class="practice-stat"><div class="practice-stat-value" id="prCurrent">$--</div><div class="practice-stat-label">Current</div></div>
       <div class="practice-stat"><div class="practice-stat-value" id="prHigh" style="color:var(--green);">$--</div><div class="practice-stat-label">Period High</div></div>
       <div class="practice-stat"><div class="practice-stat-value" id="prLow" style="color:var(--red);">$--</div><div class="practice-stat-label">Period Low</div></div>
       <div class="practice-stat"><div class="practice-stat-value" id="prChange">--</div><div class="practice-stat-label">Period Change</div></div>
     </div>
-
     <div style="background:var(--surface); padding:16px; border-radius:8px;">
       <div style="font-weight:600; margin-bottom:12px;">📋 Your Call</div>
       <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-        <select id="prDirection">
-          <option value="LONG">🟢 LONG</option>
-          <option value="SHORT">🔴 SHORT</option>
-        </select>
+        <select id="prDirection"><option value="LONG">🟢 LONG</option><option value="SHORT">🔴 SHORT</option></select>
         <input id="prShares" type="number" value="100" placeholder="Shares" style="width:90px;" />
         <button class="green" onclick="logPracticeTrade()">Submit Call</button>
       </div>
@@ -411,51 +353,31 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════ -->
 <!-- ANALYZER -->
-<!-- ═══════════════════════════════════════════ -->
 <div class="section" id="sec-analyzer">
   <div class="card">
     <div class="card-title">🔍 AI Stock Analyzer</div>
-    <p style="font-size:0.85em; color:var(--muted); margin-bottom:16px;">Enter any stock symbol and get an AI-powered analysis including sentiment, risk level, and key levels to watch.</p>
+    <p style="font-size:0.85em; color:var(--muted); margin-bottom:16px;">Enter any stock symbol for an AI-powered analysis including sentiment, risk level, and key levels to watch.</p>
     <div class="analyzer-form">
       <input id="analyzerSymbol" type="text" placeholder="e.g. AAPL, TSLA, NVDA" style="flex:1;" />
-      <select id="analyzerRisk">
-        <option value="conservative">Conservative</option>
-        <option value="moderate" selected>Moderate</option>
-        <option value="aggressive">Aggressive</option>
-      </select>
+      <select id="analyzerRisk"><option value="conservative">Conservative</option><option value="moderate" selected>Moderate</option><option value="aggressive">Aggressive</option></select>
       <button onclick="runAnalyzer()">Analyze</button>
     </div>
-    <div class="analyzer-result" id="analyzerResult" style="color:var(--muted);">
-      Enter a symbol above and click Analyze to get your AI breakdown.
-    </div>
+    <div class="analyzer-result" id="analyzerResult" style="color:var(--muted);">Enter a symbol above and click Analyze.</div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════ -->
 <!-- LEARN -->
-<!-- ═══════════════════════════════════════════ -->
 <div class="section" id="sec-learn">
-
   <div class="tabs">
     <button class="tab active" onclick="switchLearnTab('glossary', this)">📖 Glossary</button>
     <button class="tab" onclick="switchLearnTab('strategies', this)">🎯 Strategies</button>
   </div>
-
-  <div id="learnGlossary">
-    <div class="glossary-grid" id="glossaryGrid"></div>
-  </div>
-
-  <div id="learnStrategies" style="display:none;">
-    <div class="section-grid" id="strategiesGrid"></div>
-  </div>
-
+  <div id="learnGlossary"><div class="glossary-grid" id="glossaryGrid"></div></div>
+  <div id="learnStrategies" style="display:none;"><div class="section-grid" id="strategiesGrid"></div></div>
 </div>
 
-<!-- ═══════════════════════════════════════════ -->
 <!-- AI MENTOR CHAT -->
-<!-- ═══════════════════════════════════════════ -->
 <div class="section" id="sec-chat">
   <div class="card" style="max-width:800px; margin:0 auto;">
     <div class="card-title">🤖 AI Mentor</div>
@@ -470,14 +392,11 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════ -->
 <!-- SETTINGS -->
-<!-- ═══════════════════════════════════════════ -->
 <div class="section" id="sec-settings">
   <div class="card" style="max-width:800px; margin:0 auto;">
     <div class="card-title">⚙️ Settings &amp; API Keys</div>
     <p style="font-size:0.85em; color:var(--muted); margin-bottom:20px;">Keys are saved to your browser only (localStorage). Never sent anywhere.</p>
-
     <div class="settings-grid">
       <div class="settings-group">
         <div class="settings-label">🤖 Anthropic API Key</div>
@@ -488,7 +407,6 @@
         </div>
         <div id="anthropicStatus" class="settings-status"></div>
       </div>
-
       <div class="settings-group">
         <div class="settings-label">📊 Twelve Data API Key</div>
         <input id="twelveInput" type="password" placeholder="your_key_here" class="full-width" />
@@ -498,7 +416,6 @@
         </div>
         <div id="twelveStatus" class="settings-status"></div>
       </div>
-
       <div class="settings-group">
         <div class="settings-label">🪙 CoinGecko API Key <span style="color:var(--green); font-size:0.85em;">(free tier works without key)</span></div>
         <input id="geckoInput" type="password" placeholder="Optional" class="full-width" />
@@ -508,7 +425,6 @@
         </div>
         <div id="geckoStatus" class="settings-status"></div>
       </div>
-
       <div class="settings-group">
         <div class="settings-label">🔗 Get Your Keys</div>
         <div style="display:flex; flex-direction:column; gap:8px; font-size:0.83em;">
@@ -521,11 +437,7 @@
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════════════════ -->
-<!-- JAVASCRIPT -->
-<!-- ════════════════════════════════════════════════════════ -->
 <script>
-
 // ── KEYS ──────────────────────────────────────────────────
 const getAnthropicKey = () => localStorage.getItem('anthropic') || '';
 const getTwelveKey    = () => localStorage.getItem('twelve_key') || '';
@@ -546,7 +458,6 @@ function clearKey(storageKey, inputId, statusId) {
   document.getElementById(statusId).innerHTML = `<span style="color:var(--muted);">Cleared</span>`;
 }
 
-// On settings load, show saved status
 function refreshSettingsStatus() {
   if (getAnthropicKey()) document.getElementById('anthropicStatus').innerHTML = `<span style="color:var(--green);">✓ Key saved</span>`;
   if (getTwelveKey())    document.getElementById('twelveStatus').innerHTML    = `<span style="color:var(--green);">✓ Key saved</span>`;
@@ -556,18 +467,17 @@ function refreshSettingsStatus() {
 // ── CLOCK ─────────────────────────────────────────────────
 function updateClock() {
   const now = new Date();
-  const opts = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, timeZoneName: 'short' };
-  document.getElementById('clockDisplay').textContent = now.toLocaleTimeString('en-US', opts);
+  document.getElementById('clockDisplay').textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, timeZoneName: 'short' });
 }
 setInterval(updateClock, 1000);
 updateClock();
 
 // ── NAV ───────────────────────────────────────────────────
-function showSection(id) {
+function showSection(id, btn) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('sec-' + id).classList.add('active');
-  event.target.classList.add('active');
+  if (btn) btn.classList.add('active');
   if (id === 'settings') refreshSettingsStatus();
   if (id === 'learn') renderLearn();
 }
@@ -580,8 +490,7 @@ async function fetchStockPrices() {
   if (!key) return;
   const symbols = ['SPY','QQQ','AAPL','NVDA','TSLA','MSFT','AMZN','META','GOLD','CL=F'];
   try {
-    const url = `[api.twelvedata.com](https://api.twelvedata.com/quote?symbol=${symbols.join()',')}&apikey=${key}`;
-    const res = await fetch(url);
+    const res  = await fetch(`[api.twelvedata.com](https://api.twelvedata.com/quote?symbol=${symbols.join()',')}&apikey=${key}`);
     const data = await res.json();
     symbols.forEach(sym => {
       const d = data[sym] || data;
@@ -599,8 +508,7 @@ async function fetchStockPrices() {
 
 async function fetchCryptoPrices() {
   try {
-    const url = '[api.coingecko.com](https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true)';
-    const res = await fetch(url);
+    const res  = await fetch('[api.coingecko.com](https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true)');
     const data = await res.json();
     if (data.bitcoin)  cachedPrices['BTC'] = { price: data.bitcoin.usd,  change: data.bitcoin.usd_24h_change  };
     if (data.ethereum) cachedPrices['ETH'] = { price: data.ethereum.usd, change: data.ethereum.usd_24h_change };
@@ -609,28 +517,24 @@ async function fetchCryptoPrices() {
 }
 
 function updatePriceDisplays() {
-  const fmt = (p) => p > 1000 ? `$${p.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}` : `$${p.toFixed(2)}`;
-  const fmtC = (c) => c >= 0 ? `▲ ${c.toFixed(2)}%` : `▼ ${Math.abs(c).toFixed(2)}%`;
+  const fmt  = p => p > 1000 ? `$${p.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}` : `$${p.toFixed(2)}`;
+  const fmtC = c => c >= 0 ? `▲ ${c.toFixed(2)}%` : `▼ ${Math.abs(c).toFixed(2)}%`;
 
   Object.entries(cachedPrices).forEach(([sym, {price, change}]) => {
     const cls = change >= 0 ? 'up' : 'down';
-    // ticker
     ['', '2'].forEach(sfx => {
       const pe = document.getElementById(`t-${sym}${sfx}`);
       const ce = document.getElementById(`tc-${sym}${sfx}`);
       if (pe) pe.textContent = fmt(price);
       if (ce) { ce.textContent = fmtC(change); ce.className = `ticker-change ${cls}`; }
     });
-    // prices page
     const pv = document.getElementById(`p-${sym}`);
     const pc = document.getElementById(`pc-${sym}`);
     if (pv) { pv.textContent = fmt(price); pv.className = `price-value ${cls}`; }
     if (pc) { pc.textContent = fmtC(change); pc.className = `price-change ${cls}`; }
-    // watchlist
     const wv = document.getElementById(`w-${sym}`);
     if (wv) { wv.textContent = fmt(price); wv.className = cls; }
   });
-
   updateMood();
   updateFearGreed();
 }
@@ -641,13 +545,13 @@ function updateMood() {
   if (!prices.length) return;
   const avg = prices.reduce((a, b) => a + b.change, 0) / prices.length;
   let emoji, text, sub;
-  if      (avg >  1.5) { emoji = '🚀'; text = 'Strong Bull';   sub = 'Markets ripping — momentum high'; }
-  else if (avg >  0.5) { emoji = '📈'; text = 'Bullish';       sub = 'Buyers in control today'; }
+  if      (avg >  1.5) { emoji = '🚀'; text = 'Strong Bull';    sub = 'Markets ripping — momentum high'; }
+  else if (avg >  0.5) { emoji = '📈'; text = 'Bullish';        sub = 'Buyers in control today'; }
   else if (avg >  0.1) { emoji = '😐'; text = 'Slightly Green'; sub = 'Cautious optimism'; }
-  else if (avg > -0.1) { emoji = '🤔'; text = 'Neutral';       sub = 'No clear direction'; }
-  else if (avg > -0.5) { emoji = '😟'; text = 'Slightly Red';  sub = 'Mild selling pressure'; }
-  else if (avg > -1.5) { emoji = '📉'; text = 'Bearish';       sub = 'Bears in control'; }
-  else                  { emoji = '🔥'; text = 'Heavy Selloff'; sub = 'Risk-off — stay cautious'; }
+  else if (avg > -0.1) { emoji = '🤔'; text = 'Neutral';        sub = 'No clear direction'; }
+  else if (avg > -0.5) { emoji = '😟'; text = 'Slightly Red';   sub = 'Mild selling pressure'; }
+  else if (avg > -1.5) { emoji = '📉'; text = 'Bearish';        sub = 'Bears in control'; }
+  else                  { emoji = '🔥'; text = 'Heavy Selloff';  sub = 'Risk-off — stay cautious'; }
   document.getElementById('moodEmoji').textContent = emoji;
   document.getElementById('moodText').textContent  = text;
   document.getElementById('moodSub').textContent   = sub;
@@ -657,7 +561,7 @@ function updateMood() {
 function updateFearGreed() {
   const prices = Object.values(cachedPrices);
   if (!prices.length) return;
-  const avg = prices.reduce((a, b) => a + b.change, 0) / prices.length;
+  const avg   = prices.reduce((a, b) => a + b.change, 0) / prices.length;
   const score = Math.min(100, Math.max(0, Math.round(50 + avg * 10)));
   let label, color;
   if      (score >= 75) { label = 'Extreme Greed'; color = '#10b981'; }
@@ -677,14 +581,11 @@ function drawFGGauge(score, color) {
   const ctx = canvas.getContext('2d');
   const cx = 100, cy = 100, r = 80;
   ctx.clearRect(0, 0, 200, 110);
-  // background arc
   ctx.beginPath(); ctx.arc(cx, cy, r, Math.PI, 0, false);
   ctx.lineWidth = 14; ctx.strokeStyle = '#2a2a2a'; ctx.stroke();
-  // value arc
   const angle = Math.PI + (score / 100) * Math.PI;
   ctx.beginPath(); ctx.arc(cx, cy, r, Math.PI, angle, false);
   ctx.strokeStyle = color; ctx.stroke();
-  // needle
   const needleAngle = Math.PI + (score / 100) * Math.PI;
   ctx.beginPath();
   ctx.moveTo(cx, cy);
@@ -702,11 +603,7 @@ async function loadBriefing() {
   }
   document.getElementById('briefingText').innerHTML = '<span class="spinner"></span> Generating your market briefing...';
   document.getElementById('briefingText').className = 'briefing-text loading';
-
-  const priceContext = Object.entries(cachedPrices)
-    .map(([s, {price, change}]) => `${s}: $${price.toFixed(2)} (${change >= 0 ? '+' : ''}${change.toFixed(2)}%)`)
-    .join(', ');
-
+  const priceContext = Object.entries(cachedPrices).map(([s, {price, change}]) => `${s}: $${price.toFixed(2)} (${change >= 0 ? '+' : ''}${change.toFixed(2)}%)`).join(', ');
   try {
     const res = await fetch('[api.anthropic.com](https://api.anthropic.com/v1/messages)', {
       method: 'POST',
@@ -714,15 +611,11 @@ async function loadBriefing() {
       body: JSON.stringify({
         model: 'claude-opus-4-5',
         max_tokens: 400,
-        messages: [{
-          role: 'user',
-          content: `You are a concise market analyst. Current prices: ${priceContext || 'not yet loaded'}. Give a short 3-4 sentence market briefing for today. Focus on what's moving, key levels, and one actionable insight for a beginner paper trader. Be direct and educational.`
-        }]
+        messages: [{ role: 'user', content: `You are a concise market analyst. Current prices: ${priceContext || 'not yet loaded'}. Give a short 3-4 sentence market briefing for today. Focus on what's moving, key levels, and one actionable insight for a beginner paper trader. Be direct and educational.` }]
       })
     });
     const data = await res.json();
-    const text = data?.content?.[0]?.text || 'Could not generate briefing.';
-    document.getElementById('briefingText').textContent = text;
+    document.getElementById('briefingText').textContent = data?.content?.[0]?.text || 'Could not generate briefing.';
     document.getElementById('briefingText').className = 'briefing-text';
   } catch(e) {
     document.getElementById('briefingText').textContent = 'Error connecting to AI. Check your key and try again.';
@@ -735,10 +628,7 @@ async function runAnalyzer() {
   const symbol = document.getElementById('analyzerSymbol').value.trim().toUpperCase();
   const risk   = document.getElementById('analyzerRisk').value;
   if (!symbol) return;
-  if (!key) {
-    document.getElementById('analyzerResult').innerHTML = '⚠️ Add your Anthropic API key in Settings.';
-    return;
-  }
+  if (!key) { document.getElementById('analyzerResult').innerHTML = '⚠️ Add your Anthropic API key in Settings.'; return; }
   document.getElementById('analyzerResult').innerHTML = `<span class="spinner"></span> Analyzing ${symbol}...`;
   const priceData = cachedPrices[symbol] ? `Current: $${cachedPrices[symbol].price.toFixed(2)} (${cachedPrices[symbol].change.toFixed(2)}%)` : 'price not loaded';
   try {
@@ -748,10 +638,7 @@ async function runAnalyzer() {
       body: JSON.stringify({
         model: 'claude-opus-4-5',
         max_tokens: 450,
-        messages: [{
-          role: 'user',
-          content: `Analyze ${symbol} for a ${risk} paper trader. ${priceData}. Cover: 1) Current sentiment 2) Key support/resistance levels 3) Risk level (low/med/high) 4) One trade idea with entry, stop-loss, and target. Keep it beginner-friendly and under 200 words.`
-        }]
+        messages: [{ role: 'user', content: `Analyze ${symbol} for a ${risk} paper trader. ${priceData}. Cover: 1) Current sentiment 2) Key support/resistance levels 3) Risk level 4) One trade idea with entry, stop-loss, and target. Keep it beginner-friendly and under 200 words.` }]
       })
     });
     const data = await res.json();
@@ -769,10 +656,7 @@ async function sendChat() {
   const input = document.getElementById('chatInput');
   const msg   = input.value.trim();
   if (!msg) return;
-  if (!key) {
-    appendChatMsg('ai', '⚠️ Please add your Anthropic API key in Settings to use the AI mentor.');
-    return;
-  }
+  if (!key) { appendChatMsg('ai', '⚠️ Please add your Anthropic API key in Settings to use the AI mentor.'); return; }
   appendChatMsg('user', msg);
   input.value = '';
   chatHistory.push({ role: 'user', content: msg });
@@ -793,9 +677,7 @@ async function sendChat() {
     thinkingEl.textContent = reply;
     chatHistory.push({ role: 'assistant', content: reply });
     if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
-  } catch(e) {
-    thinkingEl.textContent = 'Connection error. Check your Anthropic key.';
-  }
+  } catch(e) { thinkingEl.textContent = 'Connection error. Check your Anthropic key.'; }
 }
 
 function appendChatMsg(role, text) {
@@ -829,9 +711,7 @@ function closeTrade(id) {
   if (!trade) return;
   trade.exit   = exitPrice;
   trade.status = 'CLOSED';
-  trade.pnl    = trade.dir === 'LONG'
-    ? (exitPrice - trade.entry) * trade.shares
-    : (trade.entry - exitPrice) * trade.shares;
+  trade.pnl    = trade.dir === 'LONG' ? (exitPrice - trade.entry) * trade.shares : (trade.entry - exitPrice) * trade.shares;
   savePaperTrades();
   renderPaperTrades();
 }
@@ -853,72 +733,45 @@ function renderPaperTrades() {
       <td>${t.exit ? '$'+t.exit.toFixed(2) : '--'}</td>
       <td>${pnl}</td>
       <td><span style="color:${t.status==='OPEN'?'var(--yellow)':'var(--muted)'}">${t.status}</span></td>
-      <td>${t.status==='OPEN' ? `<button class="red" style="font-size:0.75em; padding:4px 10px;" onclick="closeTrade(${t.id})">Close</button>` : '✓'}</td>
+      <td>${t.status==='OPEN' ? `<button class="red" style="font-size:0.75em;padding:4px 10px;" onclick="closeTrade(${t.id})">Close</button>` : '✓'}</td>
     </tr>`;
   }).join('');
-
-  const closed = paperTrades.filter(t => t.pnl !== undefined);
+  const closed   = paperTrades.filter(t => t.pnl !== undefined);
   const totalPnl = closed.reduce((a, t) => a + t.pnl, 0);
-  const wins = closed.filter(t => t.pnl > 0).length;
-  const rate = closed.length ? Math.round((wins / closed.length) * 100) : 0;
-
-  document.getElementById('ptPnl').textContent = `$${totalPnl.toFixed(2)}`;
-  document.getElementById('ptPnl').className = `trade-stat-value ${totalPnl >= 0 ? 'up' : 'down'}`;
-  document.getElementById('ptWins').textContent = `${wins}/${closed.length}`;
+  const wins     = closed.filter(t => t.pnl > 0).length;
+  const rate     = closed.length ? Math.round((wins / closed.length) * 100) : 0;
+  document.getElementById('ptPnl').textContent      = `$${totalPnl.toFixed(2)}`;
+  document.getElementById('ptPnl').className        = `trade-stat-value ${totalPnl >= 0 ? 'up' : 'down'}`;
+  document.getElementById('ptWins').textContent     = `${wins}/${closed.length}`;
   document.getElementById('ptOpenRate').textContent = `${rate}%`;
 }
 
 // ── PRACTICE CHART ────────────────────────────────────────
 let practiceChart;
-let practiceData = [];
+let practiceData  = [];
 let practiceTrades = [];
 
 function initPracticeChart() {
   const ctx = document.getElementById('practiceChartCanvas').getContext('2d');
   practiceChart = new Chart(ctx, {
     type: 'line',
-    data: {
-      datasets: [{
-        label: 'SPY',
-        data: [],
-        borderColor: '#10b981',
-        backgroundColor: 'rgba(16,185,129,0.08)',
-        borderWidth: 2,
-        fill: true,
-        tension: 0.1,
-        pointRadius: 0,
-        pointHoverRadius: 4
-      }]
-    },
+    data: { datasets: [{
+      label: 'SPY', data: [],
+      borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)',
+      borderWidth: 2, fill: true, tension: 0.1, pointRadius: 0, pointHoverRadius: 4
+    }]},
     options: {
       responsive: true,
       maintainAspectRatio: false,
       interaction: { intersect: false, mode: 'index' },
       scales: {
-        x: {
-          type: 'time',
-          time: { tooltipFormat: 'MMM d, yyyy' },
-          grid: { color: '#1f1f1f' },
-          ticks: { color: '#6b7280', maxTicksLimit: 8 }
-        },
-        y: {
-          grid: { color: '#1f1f1f' },
-          ticks: { color: '#6b7280', callback: v => '$' + v.toFixed(0) },
-          beginAtZero: false
-        }
+        x: { type: 'time', time: { tooltipFormat: 'MMM d, yyyy' }, grid: { color: '#1f1f1f' }, ticks: { color: '#6b7280', maxTicksLimit: 8 } },
+        y: { grid: { color: '#1f1f1f' }, ticks: { color: '#6b7280', callback: v => '$' + v.toFixed(0) }, beginAtZero: false }
       },
       plugins: {
         legend: { display: false },
-        tooltip: {
-          backgroundColor: '#1a1a1a',
-          borderColor: '#2a2a2a',
-          borderWidth: 1,
-          callbacks: { label: ctx => ` $${ctx.parsed.y.toFixed(2)}` }
-        },
-        zoom: {
-          zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' },
-          pan:  { enabled: true, mode: 'xy' }
-        }
+        tooltip: { backgroundColor: '#1a1a1a', borderColor: '#2a2a2a', borderWidth: 1, callbacks: { label: ctx => ` $${ctx.parsed.y.toFixed(2)}` } },
+        zoom: { zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' }, pan: { enabled: true, mode: 'xy' } }
       }
     },
     plugins: [ChartZoom]
@@ -929,30 +782,17 @@ async function loadPracticeChart() {
   const key      = getTwelveKey();
   const interval = document.getElementById('practiceInterval').value;
   const size     = document.getElementById('practiceOutputSize').value;
-
-  if (!key) {
-    alert('Add your Twelve Data key in Settings to load live SPY data.');
-    return;
-  }
-
+  if (!key) { alert('Add your Twelve Data key in Settings to load live SPY data.'); return; }
   try {
-    const url = `[api.twelvedata.com](https://api.twelvedata.com/time_series?symbol=SPY&interval=${interval}&outputsize=${size}&apikey=${key})`;
-    const res  = await fetch(url);
+    const res  = await fetch(`[api.twelvedata.com](https://api.twelvedata.com/time_series?symbol=SPY&interval=${interval}&outputsize=${size}&apikey=${key})`);
     const data = await res.json();
     if (!data?.values) throw new Error('No data');
-
-    practiceData = data.values.reverse().map(d => ({
-      x: new Date(d.datetime),
-      y: parseFloat(d.close)
-    }));
-
+    practiceData = data.values.reverse().map(d => ({ x: new Date(d.datetime), y: parseFloat(d.close) }));
     practiceChart.data.datasets[0].data = practiceData;
     practiceChart.resetZoom();
     practiceChart.update('none');
     updatePracticeStats();
-  } catch(e) {
-    alert('Could not load SPY data. Check your Twelve Data key.');
-  }
+  } catch(e) { alert('Could not load SPY data. Check your Twelve Data key.'); }
 }
 
 function updatePracticeStats() {
@@ -962,7 +802,6 @@ function updatePracticeStats() {
   const high    = Math.max(...prices);
   const low     = Math.min(...prices);
   const change  = ((current - prices[0]) / prices[0] * 100).toFixed(2);
-
   document.getElementById('prCurrent').textContent = `$${current.toFixed(2)}`;
   document.getElementById('prHigh').textContent    = `$${high.toFixed(2)}`;
   document.getElementById('prLow').textContent     = `$${low.toFixed(2)}`;
@@ -976,87 +815,51 @@ function logPracticeTrade() {
   const shares = document.getElementById('prShares').value;
   const entry  = practiceData[practiceData.length - 1].y;
   const time   = new Date().toLocaleTimeString();
-
   practiceTrades.push({ dir, shares, entry, time });
-
   const log = document.getElementById('practiceTradeLog');
   const el  = document.createElement('div');
-  el.style.cssText = `background:var(--surface); padding:8px 12px; border-radius:6px; font-size:0.83em;`;
+  el.style.cssText = 'background:var(--surface); padding:8px 12px; border-radius:6px; font-size:0.83em;';
   el.innerHTML = `<span class="${dir === 'LONG' ? 'up' : 'down'}">${dir}</span> ${shares} shares @ <strong>$${entry.toFixed(2)}</strong> — ${time}`;
   log.prepend(el);
 }
 
-// ── LEARN / GLOSSARY ──────────────────────────────────────
+// ── LEARN ─────────────────────────────────────────────────
 const glossaryTerms = [
-  { term: 'Bull Market',      def: 'A market trending upward, with prices rising 20%+ from recent lows. Investors are optimistic.' },
-  { term: 'Bear Market',      def: 'A market falling 20%+ from recent highs. Pessimism and selling dominate.' },
-  { term: 'Support',          def: 'A price level where buying interest is strong enough to prevent the price from falling further.' },
-  { term: 'Resistance',       def: 'A price level where selling pressure prevents the price from rising further.' },
-  { term: 'Volume',           def: 'The number of shares or contracts traded in a period. High volume confirms price moves.' },
-  { term: 'Breakout',         def: 'When price moves above resistance or below support with strong volume.' },
-  { term: 'Stop Loss',        def: 'An automatic sell order placed below your entry to limit potential losses.' },
-  { term: 'Moving Average',   def: 'The average price over a set period. Used to smooth out price noise and spot trends.' },
-  { term: 'RSI',              def: 'Relative Strength Index. Measures momentum on a 0-100 scale. Over 70 = overbought, under 30 = oversold.' },
-  { term: 'Candlestick',      def: 'A chart element showing open, high, low, and close prices for a time period.' },
-  { term: 'P&L',              def: 'Profit and Loss. The gain or loss on a trade or portfolio.' },
-  { term: 'Long',             def: 'Buying a security expecting its price to rise.' },
-  { term: 'Short',            def: 'Selling a security you don\'t own, expecting the price to fall.' },
-  { term: 'Volatility',       def: 'How much a price moves up and down. Higher volatility = bigger swings, more risk.' },
-  { term: 'Liquidity',        def: 'How easily an asset can be bought or sold without moving its price.' },
-  { term: 'Market Cap',       def: 'Total market value of a company. Share price × total shares outstanding.' },
-  { term: 'ETF',              def: 'Exchange-Traded Fund. A basket of securities that trades like a single stock (e.g. SPY = S&P 500).' },
-  { term: 'Options',          def: 'Contracts giving the right (not obligation) to buy or sell at a set price before a date.' },
-  { term: 'MACD',             def: 'Momentum indicator showing the relationship between two moving averages. Used to spot trend changes.' },
-  { term: 'Bid/Ask Spread',   def: 'The difference between the highest buyer price and lowest seller price.' },
+  { term: 'Bull Market',     def: 'A market trending upward, with prices rising 20%+ from recent lows. Investors are optimistic.' },
+  { term: 'Bear Market',     def: 'A market falling 20%+ from recent highs. Pessimism and selling dominate.' },
+  { term: 'Support',         def: 'A price level where buying interest is strong enough to prevent the price from falling further.' },
+  { term: 'Resistance',      def: 'A price level where selling pressure prevents the price from rising further.' },
+  { term: 'Volume',          def: 'The number of shares traded in a period. High volume confirms price moves.' },
+  { term: 'Breakout',        def: 'When price moves above resistance or below support with strong volume.' },
+  { term: 'Stop Loss',       def: 'An automatic sell order placed below your entry to limit potential losses.' },
+  { term: 'Moving Average',  def: 'The average price over a set period. Used to smooth out noise and spot trends.' },
+  { term: 'RSI',             def: 'Relative Strength Index. Measures momentum 0-100. Over 70 = overbought, under 30 = oversold.' },
+  { term: 'Candlestick',     def: 'A chart element showing open, high, low, and close prices for a time period.' },
+  { term: 'P&L',             def: 'Profit and Loss. The gain or loss on a trade or portfolio.' },
+  { term: 'Long',            def: 'Buying a security expecting its price to rise.' },
+  { term: 'Short',           def: "Selling a security you don't own, expecting the price to fall." },
+  { term: 'Volatility',      def: 'How much a price moves up and down. Higher volatility = bigger swings, more risk.' },
+  { term: 'Liquidity',       def: 'How easily an asset can be bought or sold without moving its price.' },
+  { term: 'Market Cap',      def: 'Total market value of a company. Share price × total shares outstanding.' },
+  { term: 'ETF',             def: 'Exchange-Traded Fund. A basket of securities that trades like a single stock.' },
+  { term: 'Options',         def: 'Contracts giving the right (not obligation) to buy or sell at a set price before a date.' },
+  { term: 'MACD',            def: 'Momentum indicator showing the relationship between two moving averages.' },
+  { term: 'Bid/Ask Spread',  def: 'The difference between the highest buyer price and lowest seller price.' },
 ];
 
 const strategies = [
-  {
-    title: '📈 Trend Following',
-    color: '#10b981',
-    desc: 'Trade in the direction of the dominant trend. Buy when price is above the moving average and selling when below.',
-    rules: ['Use the 20-day and 50-day moving averages', 'Enter when shorter MA crosses above longer MA', 'Set stop-loss below recent swing low', 'Exit when MA cross reverses']
-  },
-  {
-    title: '🔄 Mean Reversion',
-    color: '#3b82f6',
-    desc: 'Bet that extreme price moves will snap back to the average. Works best in range-bound markets.',
-    rules: ['Look for RSI below 30 (oversold) to buy', 'Look for RSI above 70 (overbought) to sell', 'Use Bollinger Bands as price extremes', 'Exit near the middle of the range']
-  },
-  {
-    title: '💥 Breakout Trading',
-    color: '#f59e0b',
-    desc: 'Enter when price breaks through a key level with high volume. Momentum carries the move further.',
-    rules: ['Identify strong support/resistance levels', 'Wait for close above/below the level', 'Confirm with high volume on breakout', 'Place stop-loss just inside the broken level']
-  },
-  {
-    title: '🕯 Candlestick Patterns',
-    color: '#8b5cf6',
-    desc: 'Read individual or groups of candles to predict short-term reversals or continuations.',
-    rules: ['Doji = indecision, watch for reversal', 'Hammer = potential bullish reversal', 'Engulfing candle = strong reversal signal', 'Always confirm with volume and trend']
-  },
-  {
-    title: '📊 Volume Analysis',
-    color: '#ef4444',
-    desc: 'Price moves are only meaningful when backed by volume. Use volume to confirm or doubt price action.',
-    rules: ['Rising price + rising volume = strong trend', 'Rising price + falling volume = weak move', 'High volume selloff = potential climax bottom', 'Always check volume on breakouts']
-  },
-  {
-    title: '🛡 Risk Management',
-    color: '#10b981',
-    desc: 'The most important strategy. Protect your capital first — profits follow naturally.',
-    rules: ['Never risk more than 1-2% per trade', 'Always use a stop-loss', 'Risk/reward ratio of at least 1:2', 'Keep a trading journal for every trade']
-  },
+  { title: '📈 Trend Following',    color: '#10b981', desc: 'Trade in the direction of the dominant trend using moving averages.',           rules: ['Use 20-day and 50-day moving averages', 'Enter when shorter MA crosses above longer MA', 'Set stop-loss below recent swing low', 'Exit when MA cross reverses'] },
+  { title: '🔄 Mean Reversion',     color: '#3b82f6', desc: 'Bet that extreme price moves will snap back to the average.',                    rules: ['Look for RSI below 30 to buy', 'Look for RSI above 70 to sell', 'Use Bollinger Bands as price extremes', 'Exit near the middle of the range'] },
+  { title: '💥 Breakout Trading',   color: '#f59e0b', desc: 'Enter when price breaks through a key level with high volume.',                  rules: ['Identify strong support/resistance', 'Wait for close above/below the level', 'Confirm with high volume', 'Stop-loss just inside the broken level'] },
+  { title: '🕯 Candlestick Patterns', color: '#8b5cf6', desc: 'Read candles to predict short-term reversals or continuations.',               rules: ['Doji = indecision, watch for reversal', 'Hammer = potential bullish reversal', 'Engulfing = strong reversal signal', 'Always confirm with volume and trend'] },
+  { title: '📊 Volume Analysis',    color: '#ef4444', desc: 'Price moves are only meaningful when backed by volume.',                         rules: ['Rising price + rising volume = strong trend', 'Rising price + falling volume = weak move', 'High volume selloff = potential bottom', 'Check volume on all breakouts'] },
+  { title: '🛡 Risk Management',    color: '#10b981', desc: 'The most important strategy. Protect your capital first.',                        rules: ['Never risk more than 1-2% per trade', 'Always use a stop-loss', 'Aim for 1:2 risk/reward ratio', 'Keep a trading journal'] },
 ];
 
 function renderLearn() {
   const gg = document.getElementById('glossaryGrid');
   if (!gg.children.length) {
-    gg.innerHTML = glossaryTerms.map(g => `
-      <div class="glossary-item">
-        <div class="glossary-term">${g.term}</div>
-        <div class="glossary-def">${g.def}</div>
-      </div>`).join('');
+    gg.innerHTML = glossaryTerms.map(g => `<div class="glossary-item"><div class="glossary-term">${g.term}</div><div class="glossary-def">${g.def}</div></div>`).join('');
   }
   const sg = document.getElementById('strategiesGrid');
   if (!sg.children.length) {
@@ -1064,9 +867,7 @@ function renderLearn() {
       <div class="strategy-card" style="border-left-color:${s.color}">
         <div class="strategy-title">${s.title}</div>
         <div class="strategy-desc">${s.desc}</div>
-        <ul class="strategy-rules">
-          ${s.rules.map(r => `<li>${r}</li>`).join('')}
-        </ul>
+        <ul class="strategy-rules">${s.rules.map(r => `<li>${r}</li>`).join('')}</ul>
       </div>`).join('');
   }
 }
@@ -1074,8 +875,8 @@ function renderLearn() {
 function switchLearnTab(tab, btn) {
   document.querySelectorAll('.tabs .tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('learnGlossary').style.display   = tab === 'glossary'    ? 'block' : 'none';
-  document.getElementById('learnStrategies').style.display = tab === 'strategies'  ? 'block' : 'none';
+  document.getElementById('learnGlossary').style.display   = tab === 'glossary'   ? 'block' : 'none';
+  document.getElementById('learnStrategies').style.display = tab === 'strategies' ? 'block' : 'none';
 }
 
 // ── NEWS ──────────────────────────────────────────────────
@@ -1086,8 +887,7 @@ async function loadNews() {
     const res  = await fetch(`[api.twelvedata.com](https://api.twelvedata.com/news?apikey=${key})`);
     const data = await res.json();
     if (!data?.data?.length) return;
-    const container = document.getElementById('newsContainer');
-    container.innerHTML = data.data.slice(0, 8).map(n => `
+    document.getElementById('newsContainer').innerHTML = data.data.slice(0, 8).map(n => `
       <div class="news-item">
         <div class="news-headline"><a href="${n.url}" target="_blank">${n.title}</a></div>
         <div class="news-meta">${new Date(n.published_at * 1000).toLocaleDateString()}</div>
@@ -1109,7 +909,6 @@ document.addEventListener('DOMContentLoaded', () => {
   init();
   setInterval(() => { fetchStockPrices(); fetchCryptoPrices(); }, 60000);
 });
-
 </script>
 </body>
 </html>
