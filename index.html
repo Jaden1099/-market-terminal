@@ -1535,9 +1535,6 @@ function renderWatchItems(items){
   const el=document.getElementById('watchItems');
   el.innerHTML=items.map((item,i)=>`<div class="watch-item"><span class="watch-num">${i+1}.</span><span class="watch-text">${item}</span></div>`).join('');
 }
-  const el=document.getElementById('watchItems');
-  el.innerHTML=items.map((item,i)=>`<div class="watch-item"><span class="watch-num">${i+1}.</span><span class="watch-text">${item}</span></div>`).join('');
-}
 
 // ── PRACTICE MODE ────────────────────────────────────────────
 // Real SPY historical OHLC data for each period
